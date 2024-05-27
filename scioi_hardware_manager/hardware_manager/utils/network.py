@@ -11,24 +11,29 @@ def getIP():
     :param debug:
     :return:
     """
+
+    local_ip = None
+    usb_ip = None
+
     if os.name == 'nt':
 
         hostname = socket.gethostname()
+        ip_addresses = socket.gethostbyname_ex(hostname)[2]
+        local_ips = [ip for ip in ip_addresses if ip.startswith("192.168.0")]
+        if len(local_ips) == 0:
+            return None
+
+        local_ip = [ip for ip in ip_addresses if ip.startswith("192.168.0")][:1][0]
+        usb_ip = ''
         server_address = socket.gethostbyname_ex(socket.gethostname())
 
-        logging.debug('\t-------------')
-        logging.debug("\tIP Tool")
-        local_ip = None
-        usb_ip = None
-        for ip in server_address[2]:
-            if ip.startswith("192."):
-                local_ip = ip
-            if ip.startswith("169."):
-                usb_ip = ip
     elif os.name == 'posix':
-        # x = os.system('ifconfig | grep "inet" | grep -Fv 127.0.0.1 | awk "{print $2}"')
         hostname = socket.gethostname()
-        local_ip = subprocess.check_output(['ipconfig', 'getifaddr', 'en0']).decode(sys.stdout.encoding).strip()
+        ip_addresses = socket.gethostbyname_ex(hostname)[2]
+        local_ips = [ip for ip in ip_addresses if ip.startswith("192.168.0")]
+        if len(local_ips) == 0:
+            return None
+        local_ip = [ip for ip in ip_addresses if ip.startswith("192.168.0")][:1][0]
         usb_ip = ''
         server_address = socket.gethostbyname_ex(socket.gethostname())
 

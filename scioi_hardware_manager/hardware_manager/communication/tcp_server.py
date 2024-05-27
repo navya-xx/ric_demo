@@ -37,6 +37,9 @@ class TCP_Server:
         # If no specific address is specified, look for a local IP to host the server
         if address is None:
             addresses = getIP()
+            if addresses is None:
+                logger.warning("No local network found. Cannot create server!")
+                exit()
             address = addresses['local']
             if address is None:
                 address = addresses['usb']
@@ -174,7 +177,6 @@ class TCP_Server:
 
     # ------------------------------------------------------------------------------------------------------------------
     def _deviceHandshake_callback(self, device: TCP_Connection, handshake_msg):
-
         # Check all protocol ids that the device supports and check if they are in the supported
         # data protocols of the server
         for protocol_id in handshake_msg.protocols:

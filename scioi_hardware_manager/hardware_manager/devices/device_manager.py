@@ -63,7 +63,7 @@ class DeviceManager:
     # ------------------------------------------------------------------------------------------------------------------
     def _deviceRegistered_callback(self, device):
 
-        logger.info(f'New device registered. Name: {device.name} ({device.device_class}/{device.device_type})')
+        logger.info(f'New device registered. Name: {device.information.device_name} ({device.information.device_class}/{device.information.device_type})')
         for callback in self.callbacks['new_device']:
             callback(device=device)
 

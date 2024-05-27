@@ -23,7 +23,7 @@ class DataValue:
 class DeviceInformation:
     device_class: str = ''
     device_type: str = ''
-    name: str = ''
+    device_name: str = ''
     device_id: str = ''
     address: str = ''
     revision: int = 0
@@ -174,43 +174,45 @@ class Device:
 
     # ------------------------------------------------------------------------------------------------------------------
     def _handleIdentificationEvent(self, data):
+
         self.information.device_class = data['device_class']
         self.information.device_type = data['device_type']
         self.information.device_name = data['device_name']
         self.information.device_id = data['device_id']
         self.information.address = data['address']
-        self.information.remote_address = data['revision']
+        self.information.revision = data['revision']
 
         # Set the data
-        for name, item in data['data'].items():
-            if isinstance(item, dict) and all(isinstance(sub_item, dict) for sub_item in item.values()):
-                self.data[name] = {}
-                for sub_item_name, sub_item in item.items():
-                    self.data[name][sub_item_name] = DataValue(identifier=sub_item['identifier'],
-                                                               description=sub_item['description'],
-                                                               limits=sub_item['limits'],
-                                                               writable=sub_item['writable'],
-                                                               datatype=sub_item['datatype'],
-                                                               value=sub_item['value'])
-            else:
-                self.data[name] = DataValue(identifier=item['identifier'],
-                                            description=item['description'],
-                                            limits=item['limits'],
-                                            writable=item['writable'],
-                                            datatype=item['datatype'],
-                                            value=item['value'])
+        # for name, item in data['data'].items():
+        #     if isinstance(item, dict) and all(isinstance(sub_item, dict) for sub_item in item.values()):
+        #         self.data[name] = {}
+        #         for sub_item_name, sub_item in item.items():
+        #             self.data[name][sub_item_name] = DataValue(identifier=sub_item['identifier'],
+        #                                                        description=sub_item['description'],
+        #                                                        limits=sub_item['limits'],
+        #                                                        writable=sub_item['writable'],
+        #                                                        datatype=sub_item['datatype'],
+        #                                                        value=sub_item['value'])
+        #     else:
+        #         self.data[name] = DataValue(identifier=item['identifier'],
+        #                                     description=item['description'],
+        #                                     limits=item['limits'],
+        #                                     writable=item['writable'],
+        #                                     datatype=item['datatype'],
+        #                                     value=item['value'])
 
         # Set the commands
-        ...
-
         self.connection.registered = True
+        ...
 
         for callback in self.callbacks['registered']:
             callback(self)
+        # except Exception:
+        #     logger.error("Cannot register device. Incompatible device information")
 
     # ------------------------------------------------------------------------------------------------------------------
     def _disconnected_callback(self, connection: Connection):
-        logger.info(f'Device disconnected. Name: {self.name} ({self.device_class}/{self.device_type})')
+        logger.info(f'Device disconnected. Name: {self.information.device_name} ({self.information.device_class}/{self.information.device_type})')
         for callback in self.callbacks['disconnected']:
             callback(self)
     # ------------------------------------------------------------------------------------------------------------------
