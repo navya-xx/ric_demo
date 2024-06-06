@@ -12,6 +12,10 @@ from extensions.websockets.websocket_server import WebsocketClass
 
 ws_stream = None
 ws_messages = None
+manager = None
+
+controlModeDict = {"off": 0, "direct": 1, "balancing": 2, "speed": 3}
+joysticks = []
 
 
 def stream_callback(stream, device, *args, **kwargs):
@@ -34,20 +38,40 @@ def robot_disconnected(robot, *args, **kwargs):
 
 
 def ws_callback(message):
-    global stop_streaming
+    global manager, controlModeDict
     data = json.loads(message)
     message_type = data.get('type')
 
-    if message_type == 'command' and data.get('command') == 'emergency':
-        stop_streaming = False
+    if message_type == 'command' and data.get('data').get('command') == 'emergency':
         timestamp = data.get('timestamp')
+        # emergency command at hardwaremanager
+        manager.emergencyStop()
         print(f"Emergency command received at {timestamp}")
 
-    elif message_type == 'assignController':
-        bot_id = data.get('botId')
-        controller_id = data.get('controllerId')
-        timestamp = data.get('timestamp')
-        print(f"Assigning controller {controller_id} to bot {bot_id} at {timestamp}")
+
+    elif message_type == 'joysticksChanged':
+        joysticks = data.get('data').get('joysticks')
+        for joystrick in joysticks:
+            controller_id = joystrick.get('id')
+            bot_id = joystrick.get('assignedBot')
+            if bot_id == "":
+                # check if the controller is assigned to a bot
+                if controller_id in manager.joystick_assignments.keys():
+                    manager.unassignJoystick(controller_id)
+                    print(f"Unassigning controller {controller_id}")
+            else:
+                if controller_id in manager.joystick_assignments.keys():
+                    connected_bot_id = manager.joystick_assignments[controller_id]['robot'].device.information.device_id
+                    if connected_bot_id == bot_id:
+                        pass
+                    else:
+                        manager.assignJoystick(bot_id, controller_id)
+                else:
+                    manager.assignJoystick(bot_id, controller_id)
+                    # check to what bot the controller is assigned
+            timestamp = data.get('timestamp')
+            # Assign the controller to the bot with hardware manager
+            print(f"Assigning controller {controller_id} to bot {bot_id} at {timestamp}")
 
     elif message_type == 'set':
         bot_id = data.get('botId')
@@ -55,41 +79,45 @@ def ws_callback(message):
         value = data.get('value')
         timestamp = data.get('timestamp')
         print(f"Setting {key} to {value} for bot {bot_id} at {timestamp}")
-        # Set the control mode for the bot
-        set_control_mode(bot_id, key, value)
+        # Set the control mode for the bot using hardware manager
+        modeId = controlModeDict.get(value)
+        manager.setRobotControlMode(bot_id, modeId)
 
     else:
         print(f"Unknown message type: {message_type}")
 
 def set_initial_values():
-    joysticks = [{
-                "id": "3240234234324324",
-                "name": "controller1",
-                "assignedBot": "twipr1",
-            },
-            {
-                "id": "32402334234324324",
-                "name": "controller2",
-                "assignedBot": "twipr2",
-            },
-            {
-                "id": "32402234234324324",
-                "name": "controller3",
-                "assignedBot": "twipr3",
-            },
-            {
-                "id": "3240112334234324324",
-                "name": "controller4",
-                "assignedBot": "twipr4",
-            }
-            ]
+    global joysticks
     message = { "timestamp" : time.time(), "type" : "joysticksChanged", "data": {"joysticks" : joysticks}  }
     ws_messages.send(message)
 
+def new_joystick(joystick, *args, **kwargs):
+    global joysticks, ws_messages
+    id = joystick.uuid
+    # check if the joystick is already in the dict if not add
+    for j in joysticks:
+        if j.get('id') == id:
+            return
+    joy = {"id": id, "name": id, "assignedBot": ""}
+    joysticks.append(joy)
+    message = { "timestamp" : time.time(), "type" : "joysticksChanged", "data": {"joysticks" : joysticks}  }
+    ws_messages.send(message)
+
+def joystick_disconnected(joystick, *args, **kwargs):
+    global joysticks, ws_messages
+    id = joystick.uuid
+    # check if the joystick is in the dict if yes remove
+    for j in joysticks:
+        if j.get('id') == id:
+            joysticks.remove(j)
+            message = { "timestamp" : time.time(), "type" : "joysticksChanged", "data": {"joysticks" : joysticks}  }
+            ws_messages.send(message)
+            # send the joysticks to the ws
+            break
+    pass
 
 def main():
-    global ws_stream
-    global ws_messages
+    global ws_stream, ws_messages, manager
 
     manager = RobotManager()
     manager.init()
@@ -100,6 +128,8 @@ def main():
     ws_messages.set_message_callback(ws_callback)
     manager.registerCallback('stream', stream_callback)
     manager.registerCallback('new_robot', new_robot)
+    manager.registerCallback('new_joystick', new_joystick)
+    manager.registerCallback('joystick_disconnected', joystick_disconnected)
 
     set_initial_values()
 
