@@ -147,7 +147,7 @@ class TWIPR:
             },
             'board': {
                 'status': 'normal',  # str
-                'battery': 14.2,  # float [V] [X]
+                'battery': 16.8,  # float [V] [X]
                 'charging': False,  # bool
             },
             'drive': {

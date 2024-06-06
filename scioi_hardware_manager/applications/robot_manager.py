@@ -171,7 +171,7 @@ class RobotManager:
             print(joystick.uuid)
             return
         logger.info(f"New Joystick connected (ID: {settings.joysticks[joystick.uuid]['id']}, UUID: {joystick.uuid})")
-        joystick.name = settings.joysticks[joystick.uuid]
+        joystick.name = settings.joysticks[joystick.uuid]['id']
 
         if settings.joysticks[joystick.uuid]['master']:
             logger.info("Master Joystick connected!")
