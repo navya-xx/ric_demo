@@ -66,7 +66,7 @@ class TWIPR:
 
     def convertSample(self, sample):
         sample = sample.data
-        twipr_wifi_sample = {
+        new_sample = {
             'general': {
                 'status': "normal",  # str
                 'configuration': 'default',  # str
@@ -165,8 +165,10 @@ class TWIPR:
                     'speed': 1,  # float [grad/s] [X]
                     'angle': 2  # float [grad]
                 }
-            }
+            },
+
         }
+        return new_sample
 
     def _onStreamCallback(self, *args, **kwargs):
         ...

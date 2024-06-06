@@ -1,5 +1,6 @@
 import logging
 import threading
+import time
 
 from device_manager.device_manager import DeviceManager
 from device_manager.devices.device import Device
@@ -95,21 +96,23 @@ class RobotManager:
     # ------------------------------------------------------------------------------------------------------------------
     def assignJoystick(self, robot, joystick):
 
-        if isinstance(robot, str) and robot in self.robots.keys():
-            robot = self.robots[robot]
-        else:
-            return
+        print("ASSIGN")
+        if isinstance(robot, str):
+            if robot in self.robots.keys():
+                robot = self.robots[robot]
+            else:
+                return
 
-        if isinstance(joystick, str) and joystick in self.joysticks.joysticks.keys():
-            joystick = self.joysticks.joysticks[joystick]
-        else:
-            return
+        if isinstance(joystick, str):
+            if joystick in self.joysticks.joysticks.keys():
+                joystick = self.joysticks.joysticks[joystick]
+            else:
+                return
 
         self.joystick_assignments[joystick.uuid] = {
             'robot': robot,
             'joystick': joystick
         }
-
         joystick.setButtonCallback(button=1, event='down', function=robot.setControlMode, parameters={'mode': 2})
         joystick.setButtonCallback(button=0, event='down', function=robot.setControlMode, parameters={'mode': 0})
 
@@ -156,6 +159,8 @@ class RobotManager:
                 val1 = assignment['joystick'].axis[1] * max_forward_torque_cmd
                 val2 = assignment['joystick'].axis[2] * max_turning_torque_cmd
                 assignment['robot'].setInput([val1 + val2, val1 - val2])
+
+            time.sleep(0.1)
 
     # ------------------------------------------------------------------------------------------------------------------
     def _newJoystick_callback(self, joystick, *args, **kwargs):
@@ -252,4 +257,4 @@ class RobotManager:
             new_sample = robot.convertSample(stream)
 
             for callback in self.callbacks['stream']:
-                callback(stream, device, *args, **kwargs)
+                callback(new_sample, device, *args, **kwargs)

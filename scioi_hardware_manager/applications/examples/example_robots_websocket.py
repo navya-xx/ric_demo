@@ -20,7 +20,7 @@ joysticks = []
 
 def stream_callback(stream, device, *args, **kwargs):
     if ws_stream is not None:
-        ws_stream.send(stream.data)
+        ws_stream.send(stream)
 
 
 def new_robot(robot, *args, **kwargs):
@@ -50,7 +50,8 @@ def ws_callback(message):
 
 
     elif message_type == 'joysticksChanged':
-        joysticks = data.get('data').get('joysticks')
+        print(data)
+        joysticks = data.get('data')
         for joystrick in joysticks:
             controller_id = joystrick.get('id')
             bot_id = joystrick.get('assignedBot')
