@@ -1,29 +1,27 @@
 import logging
 import threading
+import time
 
 from device_manager.device_manager import DeviceManager
 from device_manager.devices.device import Device
 from device_manager.devices.robots.twipr.twipr import TWIPR
+from device_manager.devices.robots.visionrobot.visionrobot import VisionRobot
 from extensions.joystick.joystick_manager import JoystickManager
 from extensions.optitrack.optitrack import OptiTrack
-import applications.ideenexpo.settings as settings
+import applications.visionrobots.settings as settings
 
 logger = logging.getLogger('robot manager')
 logger.setLevel('INFO')
 
-# TODO: should be somewhere else
-max_forward_torque_cmd = 0.10
-max_turning_torque_cmd = 0.10
 
-
-class RobotManager:
+class VisionRobotManager:
     deviceManager: DeviceManager
     joysticks: JoystickManager
-    optitrack: OptiTrack
+    # optitrack: OptiTrack
 
     callbacks: dict
 
-    robots: dict[str, TWIPR]
+    robots: dict[str, VisionRobot]
 
     joystick_assignments: dict
     connected_joysticks: dict
@@ -35,22 +33,12 @@ class RobotManager:
         self.deviceManager = DeviceManager()
         self.joysticks = JoystickManager()
 
-        if optitrack:
-            self.optitrack = OptiTrack(settings.optitrack['server_address'],
-                                       settings.optitrack['local_address'],
-                                       settings.optitrack['multicast_address'])
-        else:
-            self.optitrack = None
-
         self.joysticks.registerCallback('new_joystick', self._newJoystick_callback)
         self.joysticks.registerCallback('joystick_disconnected', self._joystickDisconnected_callback)
 
         self.deviceManager.registerCallback('new_device', self._newDevice_callback)
         self.deviceManager.registerCallback('device_disconnected', self._deviceDisconnected_callback)
         self.deviceManager.registerCallback('stream', self._deviceStream_callback)
-
-        if self.optitrack is not None:
-            self.optitrack.registerCallback('new_frame', self._newOptiTrackFrame_callback)
 
         self.robots = {}
         self.connected_joysticks = {}
@@ -80,16 +68,11 @@ class RobotManager:
         self.deviceManager.init()
         self.joysticks.init()
 
-        if self.optitrack is not None:
-            self.optitrack.init()
-
     # ------------------------------------------------------------------------------------------------------------------
     def start(self):
         self.deviceManager.start()
         self.joysticks.start()
 
-        if self.optitrack is not None:
-            self.optitrack.start()
         self._thread.start()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -99,8 +82,8 @@ class RobotManager:
             'joystick': joystick
         }
 
-        joystick.setButtonCallback(button=1, event='down', function=robot.setControlMode, parameters={'mode': 2})
-        joystick.setButtonCallback(button=0, event='down', function=robot.setControlMode, parameters={'mode': 0})
+        # joystick.setButtonCallback(button=1, event='down', function=robot.setControlMode, parameters={'mode': 2})
+        # joystick.setButtonCallback(button=0, event='down', function=robot.setControlMode, parameters={'mode': 0})
 
         for callback in self.callbacks['new_joystick_assignment']:
             callback(robot, joystick)
@@ -117,29 +100,11 @@ class RobotManager:
             callback(joystick)
         # TODO remove button callbacks and update function for axes
 
-    # ------------------------------------------------------------------------------------------------------------------
-    def emergencyStop(self):
-        for robot in self.robots.values():
-            robot.setControlMode(0)
-
-    # ------------------------------------------------------------------------------------------------------------------
-    def setRobotControlMode(self, robot, mode):
-        if isinstance(robot, str):
-            if robot in self.robots.keys():
-                robot = self.robots[robot]
-            else:
-                return
-
-        robot.setControlMode(mode)
-
     # === PRIVATE METHODS ==============================================================================================
     def _threadFunction(self):
         while True:
-            # Write the input to all the robots
-            for assignment in self.joystick_assignments.values():
-                val1 = assignment['joystick'].axis[1] * max_forward_torque_cmd
-                val2 = assignment['joystick'].axis[2] * max_turning_torque_cmd
-                assignment['robot'].setInput([val1 + val2, val1 - val2])
+            time.sleep(1)
+            ...
 
     # ------------------------------------------------------------------------------------------------------------------
     def _newJoystick_callback(self, joystick, *args, **kwargs):
@@ -183,10 +148,10 @@ class RobotManager:
     def _newDevice_callback(self, device: Device, *args, **kwargs):
 
         # Check if the device has the correct class and type
-        if not (device.information.device_class == 'robot' and device.information.device_type == 'twipr'):
+        if not (device.information.device_class == 'robot' and device.information.device_type == 'visionrobot'):
             return
 
-        robot = TWIPR(device)
+        robot = VisionRobot(device)
 
         # Check if the robot is in the list of known robot IDs, so that we can later assign the correct properties
         if robot.device.information.device_id not in settings.agents.keys():
@@ -212,11 +177,6 @@ class RobotManager:
             return
 
         self.robots.pop(device.information.device_id)
-
-        for joystick_id, assignment in self.joystick_assignments.items():
-            if self.robots[device.information.device_id] == assignment['robot']:
-                self.unassignJoystick(joystick_id)
-
         logger.info(f"Robot {device.information.device_id} disconnected")
 
         # Remove any joystick assignments
@@ -232,8 +192,5 @@ class RobotManager:
     def _deviceStream_callback(self, stream, device, *args, **kwargs):
         ...
         if device.information.device_id in self.robots.keys():
-            robot = self.robots[device.information.device_id]
-            new_sample = robot.convertSample(stream)
-
             for callback in self.callbacks['stream']:
                 callback(stream, device, *args, **kwargs)

@@ -3,11 +3,17 @@ import json
 import threading
 import time
 
+import numpy as np
 import websockets
 
 from applications.robot_manager import RobotManager
 from device_manager.devices.robots.twipr.twipr import TWIPR
 from extensions.joystick.joystick_manager import Joystick
+
+
+def streamCallback(stream, device, *args, **kwargs):
+    print(
+        f"Data received from {device.information.device_id} with theta = {np.rad2deg(stream.data['estimation']['state']['theta'])}")
 
 
 def robot_manager_example_1():
@@ -31,6 +37,10 @@ def robot_manager_example_1():
 
     manager.registerCallback('new_joystick', new_joystick_callback)
     manager.registerCallback('new_robot', new_robot_callback)
+
+    manager.registerCallback('stream', streamCallback)
+
+    # manager.registerCallback('stream', streamCallback)
 
     while True:
         if robot is not None and joystick is not None:

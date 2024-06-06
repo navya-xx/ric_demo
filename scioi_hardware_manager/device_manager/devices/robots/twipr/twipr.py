@@ -10,9 +10,10 @@ class TWIPR_Data:
     ...
 
 
-class TWIPR():
+class TWIPR:
     device: Device
     callbacks: dict
+
     def __init__(self, device: Device, *args, **kwargs):
         self.device = device
 
@@ -53,7 +54,6 @@ class TWIPR():
 
     def setInput(self, input):
         self.device.command('setControlInput', data={'input': input})
-        ...
 
     def setLEDs(self, color):
         ...
@@ -126,12 +126,14 @@ class TWIPR():
             'sensors': {
                 'imu': {
                     'status': 'normal',  # str
-                    'gyr': [sample['sensors']['imu']['gyr']['x'],sample['sensors']['imu']['gyr']['y'],sample['sensors']['imu']['gyr']['z']],  # list[float] [grad/s] [X]
-                    'acc': [sample['sensors']['imu']['acc']['x'],sample['sensors']['imu']['acc']['y'],sample['sensors']['imu']['acc']['z']],  # list[float] [m/s^2] [X]
+                    'gyr': [sample['sensors']['imu']['gyr']['x'], sample['sensors']['imu']['gyr']['y'],
+                            sample['sensors']['imu']['gyr']['z']],  # list[float] [grad/s] [X]
+                    'acc': [sample['sensors']['imu']['acc']['x'], sample['sensors']['imu']['acc']['y'],
+                            sample['sensors']['imu']['acc']['z']],  # list[float] [m/s^2] [X]
                 },
                 'wheel': {
                     'status': 'normal',  # str
-                    'speed': [sample['drive']['left'],  sample['drive']['right']],  # list[float] [grad/s] [X]
+                    'speed': [sample['drive']['left'], sample['drive']['right']],  # list[float] [grad/s] [X]
                     'angle': [0, 0]  # list[float] [grad]
                 },
                 'distance': {
@@ -165,8 +167,6 @@ class TWIPR():
                 }
             }
         }
-
-
 
     def _onStreamCallback(self, *args, **kwargs):
         ...
