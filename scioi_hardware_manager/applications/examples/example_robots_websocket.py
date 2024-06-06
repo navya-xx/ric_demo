@@ -75,8 +75,8 @@ def ws_callback(message):
 
     elif message_type == 'set':
         bot_id = data.get('botId')
-        key = data.get('key')
-        value = data.get('value')
+        key = data.get('data').get('key')
+        value = data.get('data').get('value')
         timestamp = data.get('timestamp')
         print(f"Setting {key} to {value} for bot {bot_id} at {timestamp}")
         # Set the control mode for the bot using hardware manager
