@@ -83,7 +83,7 @@ def set_initial_values():
                 "assignedBot": "twipr4",
             }
             ]
-    message = { "timestamp" : time.time(), "type" : "joysticksChanged", "payload": {"joysticks" : joysticks}  }
+    message = { "timestamp" : time.time(), "type" : "joysticksChanged", "data": {"joysticks" : joysticks}  }
     ws_messages.send(message)
 
 
