@@ -103,11 +103,12 @@ def set_initial_values():
 def new_joystick(joystick, *args, **kwargs):
     global joysticks, ws_messages
     id = joystick.uuid
+    name = joystick.name
     # check if the joystick is already in the dict if not add
     for j in joysticks:
         if j.get('id') == id:
             return
-    joy = {"id": id, "name": id, "assignedBot": ""}
+    joy = {"id": id, "name": name, "assignedBot": ""}
     joysticks.append(joy)
     message = {"timestamp": time.time(), "type": "joysticksChanged", "data": {"joysticks": joysticks}}
     ws_messages.send(message)
