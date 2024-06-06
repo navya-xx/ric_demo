@@ -95,8 +95,6 @@ class RobotManager:
 
     # ------------------------------------------------------------------------------------------------------------------
     def assignJoystick(self, robot, joystick):
-
-        print("ASSIGN")
         if isinstance(robot, str):
             if robot in self.robots.keys():
                 robot = self.robots[robot]
@@ -108,6 +106,10 @@ class RobotManager:
                 joystick = self.joysticks.joysticks[joystick]
             else:
                 return
+
+        for key, assignment in self.joystick_assignments.items():
+            if robot == assignment['robot']:
+                self.unassignJoystick(assignment['joystick'])
 
         self.joystick_assignments[joystick.uuid] = {
             'robot': robot,
@@ -169,6 +171,7 @@ class RobotManager:
             print(joystick.uuid)
             return
         logger.info(f"New Joystick connected (ID: {settings.joysticks[joystick.uuid]['id']}, UUID: {joystick.uuid})")
+        joystick.name = settings.joysticks[joystick.uuid]
 
         if settings.joysticks[joystick.uuid]['master']:
             logger.info("Master Joystick connected!")
@@ -177,8 +180,6 @@ class RobotManager:
 
         for callback in self.callbacks['new_joystick']:
             callback(joystick, *args, **kwargs)
-
-        ...
 
     # ------------------------------------------------------------------------------------------------------------------
     def _joystickDisconnected_callback(self, joystick, *args, **kwargs):
@@ -199,6 +200,9 @@ class RobotManager:
             self.unassignJoystick(joystick.uuid)
 
         # TODO: Notify the GUI. Should not be done here but on an overlaying task. But we need a callback here
+
+        for callback in self.callbacks['joystick_disconnected']:
+            callback(joystick)
 
     # ------------------------------------------------------------------------------------------------------------------
     def _newDevice_callback(self, device: Device, *args, **kwargs):

@@ -37,7 +37,6 @@ def robot_manager_example_1():
 
     manager.registerCallback('new_joystick', new_joystick_callback)
     manager.registerCallback('new_robot', new_robot_callback)
-
     manager.registerCallback('stream', streamCallback)
 
     # manager.registerCallback('stream', streamCallback)

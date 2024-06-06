@@ -50,8 +50,7 @@ def ws_callback(message):
 
 
     elif message_type == 'joysticksChanged':
-        print(data)
-        joysticks = data.get('data')
+        joysticks = data.get('data').get('joysticks')
         for joystrick in joysticks:
             controller_id = joystrick.get('id')
             bot_id = joystrick.get('assignedBot')
@@ -87,10 +86,19 @@ def ws_callback(message):
     else:
         print(f"Unknown message type: {message_type}")
 
+
+def ws_connection_callback(*args, **kwargs):
+    global ws_messages
+    print("ZZZZ")
+    message = {"timestamp": time.time(), "type": "joysticksChanged", "data": {"joysticks": joysticks}}
+    ws_messages.send(message)
+
+
 def set_initial_values():
     global joysticks
-    message = { "timestamp" : time.time(), "type" : "joysticksChanged", "data": {"joysticks" : joysticks}  }
+    message = {"timestamp": time.time(), "type": "joysticksChanged", "data": {"joysticks": joysticks}}
     ws_messages.send(message)
+
 
 def new_joystick(joystick, *args, **kwargs):
     global joysticks, ws_messages
@@ -101,36 +109,42 @@ def new_joystick(joystick, *args, **kwargs):
             return
     joy = {"id": id, "name": id, "assignedBot": ""}
     joysticks.append(joy)
-    message = { "timestamp" : time.time(), "type" : "joysticksChanged", "data": {"joysticks" : joysticks}  }
+    message = {"timestamp": time.time(), "type": "joysticksChanged", "data": {"joysticks": joysticks}}
     ws_messages.send(message)
+    print(joysticks)
+
 
 def joystick_disconnected(joystick, *args, **kwargs):
+    print("YYYY")
     global joysticks, ws_messages
     id = joystick.uuid
     # check if the joystick is in the dict if yes remove
     for j in joysticks:
         if j.get('id') == id:
             joysticks.remove(j)
-            message = { "timestamp" : time.time(), "type" : "joysticksChanged", "data": {"joysticks" : joysticks}  }
+            message = {"timestamp": time.time(), "type": "joysticksChanged", "data": {"joysticks": joysticks}}
             ws_messages.send(message)
             # send the joysticks to the ws
             break
     pass
 
+
 def main():
     global ws_stream, ws_messages, manager
 
     manager = RobotManager()
-    manager.init()
-    manager.start()
 
     ws_stream = WebsocketClass('localhost', 8765, start=True)
     ws_messages = WebsocketClass('localhost', 8766, start=True)
     ws_messages.set_message_callback(ws_callback)
+    ws_messages.set_connection_callback(ws_connection_callback)
     manager.registerCallback('stream', stream_callback)
     manager.registerCallback('new_robot', new_robot)
     manager.registerCallback('new_joystick', new_joystick)
     manager.registerCallback('joystick_disconnected', joystick_disconnected)
+
+    manager.init()
+    manager.start()
 
     set_initial_values()
 

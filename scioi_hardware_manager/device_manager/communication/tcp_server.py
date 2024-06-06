@@ -192,16 +192,16 @@ class TCP_Server:
             return
 
         # Check if the device is already in the list of registered devices
-        if device in self.connections:
-            logger.error(f"Connection with ({device.address}) tried to register, even though it is already registered")
-            return
+        # if device in self.connections:
+        #     logger.error(f"Connection with ({device.address}) tried to register, even though it is already registered")
+        #     return
 
         # Check if there is already a device with the same address
-        for d in self.connections:
-            if device.address == d.address:
-                logger.error(
-                    f"Connection ({device.address}) tried to register but there is already a connection with IP address {device.address}")
-                return
+        # for d in self.connections:
+        #     if device.address == d.address:
+        #         logger.error(
+        #             f"Connection ({device.address}) tried to register but there is already a connection with IP address {device.address}")
+        #         return
 
         # Put the device into the list of registered devices
         self.connections.append(device)

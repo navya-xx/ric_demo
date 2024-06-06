@@ -194,6 +194,7 @@ class Joystick:
         self.id = -1
         self.num_axes = 0
         self.uuid = ''
+        self.name = ''
 
         self._axis = []
 
