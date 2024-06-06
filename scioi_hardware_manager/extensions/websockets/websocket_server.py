@@ -13,6 +13,7 @@ class WebsocketClass:
         self.loop = asyncio.new_event_loop()
         self.thread = threading.Thread(target=self._start_loop)
         self.message_callback = None
+        self.connection_callback = None
 
         if start:
             self.run()
@@ -23,6 +24,8 @@ class WebsocketClass:
 
     async def _handler(self, websocket, path):
         self.clients.add(websocket)
+        if self.connection_callback:
+            self.loop.call_soon_threadsafe(self.connection_callback, websocket)
         try:
             async for message in websocket:
                 if self.message_callback:
@@ -59,3 +62,6 @@ class WebsocketClass:
 
     def set_message_callback(self, callback):
         self.message_callback = callback
+
+    def set_connection_callback(self, callback):
+        self.connection_callback = callback
