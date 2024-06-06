@@ -94,6 +94,17 @@ class RobotManager:
 
     # ------------------------------------------------------------------------------------------------------------------
     def assignJoystick(self, robot, joystick):
+
+        if isinstance(robot, str) and robot in self.robots.keys():
+            robot = self.robots[robot]
+        else:
+            return
+
+        if isinstance(joystick, str) and joystick in self.joysticks.joysticks.keys():
+            joystick = self.joysticks.joysticks[joystick]
+        else:
+            return
+
         self.joystick_assignments[joystick.uuid] = {
             'robot': robot,
             'joystick': joystick
@@ -109,6 +120,11 @@ class RobotManager:
 
     # ------------------------------------------------------------------------------------------------------------------
     def unassignJoystick(self, joystick):
+        if isinstance(joystick, str) and joystick in self.joysticks.joysticks.keys():
+            joystick = self.joysticks.joysticks[joystick]
+        else:
+            return
+
         self.joystick_assignments.pop(joystick.uuid)
 
         joystick.clearAllButtonCallbacks()
