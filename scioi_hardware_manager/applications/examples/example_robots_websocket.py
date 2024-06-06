@@ -61,6 +61,31 @@ def ws_callback(message):
     else:
         print(f"Unknown message type: {message_type}")
 
+def set_initial_values():
+    joysticks = [{
+                "id": "3240234234324324",
+                "name": "controller1",
+                "assignedBot": "twipr1",
+            },
+            {
+                "id": "32402334234324324",
+                "name": "controller2",
+                "assignedBot": "twipr2",
+            },
+            {
+                "id": "32402234234324324",
+                "name": "controller3",
+                "assignedBot": "twipr3",
+            },
+            {
+                "id": "3240112334234324324",
+                "name": "controller4",
+                "assignedBot": "twipr4",
+            }
+            ]
+    message = { "timestamp" : time.time(), "type" : "joysticksChanged", "payload": {"joysticks" : joysticks}  }
+    ws_messages.send(message)
+
 
 def main():
     global ws_stream
@@ -75,6 +100,8 @@ def main():
     ws_messages.set_message_callback(ws_callback)
     manager.registerCallback('stream', stream_callback)
     manager.registerCallback('new_robot', new_robot)
+
+    set_initial_values()
 
     while True:
         time.sleep(0.1)
