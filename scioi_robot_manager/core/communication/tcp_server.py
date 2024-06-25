@@ -7,8 +7,9 @@ import core.communication.protocols as protocols
 from core.utils.network import getIP
 import core.communication.addresses as addresses
 from core.communication.tcp_connection import TCP_Connection
+from utils.logging import Logger
 
-logger = logging.getLogger('server')
+logger = Logger('server')
 logger.setLevel('INFO')
 
 
@@ -38,13 +39,14 @@ class TCP_Server:
         if address is None:
             addresses = getIP()
             if addresses is None:
-                logger.warning("No local network found. Cannot create server!")
+                logger.error("No local network found. Cannot create server!")
                 exit()
             address = addresses['local']
             if address is None:
                 address = addresses['usb']
                 if address is None:
-                    raise Exception("No local or USB IP found. Specify an address to start the server")
+                    logger.error("No local or USB IP found. Specify an address to start the server")
+                    exit()
 
         self.address = address
 

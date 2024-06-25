@@ -4,7 +4,7 @@ import time
 from core.communication.protocols.tcp.tcp_json_protocol import TCP_JSON_Message
 from core.communication.tcp_server import TCP_Server
 from core.devices.device import Device
-from core.devices.robots.twipr.twipr import TWIPR
+from robots.twipr.twipr import TWIPR
 from core.utils.callbacks import Callback
 
 logger = logging.getLogger('device')

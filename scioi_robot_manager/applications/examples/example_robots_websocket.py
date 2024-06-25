@@ -1,7 +1,7 @@
 import json
 import time
 
-from applications.ideenexpo.src.twipr_manager import TWIPR_Manager
+from robots.twipr.twipr_manager import TWIPR_Manager
 from extensions.websockets.websocket_server import WebsocketClass
 
 ws_stream = None

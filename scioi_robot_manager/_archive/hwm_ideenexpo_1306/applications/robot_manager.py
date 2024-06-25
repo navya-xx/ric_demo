@@ -357,7 +357,7 @@ class RobotManager:
 
         for joystick_id, assignment in self.joystick_assignments.items():
             try:
-                if self.robots[device.information.device_id] == assignment['robot']:
+                if device.information.device_id == assignment['robot'].device.device_id:
                     print("Unassign Joystick because of disconnect")
                     self.unassignJoystick(joystick_id)
             except Exception:

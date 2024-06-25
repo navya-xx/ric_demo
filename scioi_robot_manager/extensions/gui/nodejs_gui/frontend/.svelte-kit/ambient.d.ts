@@ -89,12 +89,14 @@ declare module '$env/static/private' {
 	export const PyCharm: string;
 	export const PYCHARM_DISPLAY_PORT: string;
 	export const PYCHARM_HOSTED: string;
+	export const PYCHARM_INTERACTIVE_PLOTS: string;
 	export const PYGAME_HIDE_SUPPORT_PROMPT: string;
 	export const PYTHONIOENCODING: string;
 	export const PYTHONPATH: string;
 	export const PYTHONUNBUFFERED: string;
 	export const QT_AUTO_SCREEN_SCALE_FACTOR: string;
 	export const SESSIONNAME: string;
+	export const SOLIDWORKS_SHARED: string;
 	export const SystemDrive: string;
 	export const SystemRoot: string;
 	export const TEMP: string;
@@ -104,7 +106,6 @@ declare module '$env/static/private' {
 	export const USERNAME: string;
 	export const USERPROFILE: string;
 	export const windir: string;
-	export const ZES_ENABLE_SYSMAN: string;
 }
 
 /**
@@ -199,12 +200,14 @@ declare module '$env/dynamic/private' {
 		PyCharm: string;
 		PYCHARM_DISPLAY_PORT: string;
 		PYCHARM_HOSTED: string;
+		PYCHARM_INTERACTIVE_PLOTS: string;
 		PYGAME_HIDE_SUPPORT_PROMPT: string;
 		PYTHONIOENCODING: string;
 		PYTHONPATH: string;
 		PYTHONUNBUFFERED: string;
 		QT_AUTO_SCREEN_SCALE_FACTOR: string;
 		SESSIONNAME: string;
+		SOLIDWORKS_SHARED: string;
 		SystemDrive: string;
 		SystemRoot: string;
 		TEMP: string;
@@ -214,7 +217,6 @@ declare module '$env/dynamic/private' {
 		USERNAME: string;
 		USERPROFILE: string;
 		windir: string;
-		ZES_ENABLE_SYSMAN: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}

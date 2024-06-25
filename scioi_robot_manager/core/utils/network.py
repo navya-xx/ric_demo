@@ -30,10 +30,10 @@ def getIP():
     elif os.name == 'posix':
         hostname = socket.gethostname()
         ip_addresses = socket.gethostbyname_ex(hostname)[2]
-        local_ips = [ip for ip in ip_addresses if ip.startswith("192.168.0")]
+        local_ips = [ip for ip in ip_addresses if ip.startswith("192.168.")]
         if len(local_ips) == 0:
             return None
-        local_ip = [ip for ip in ip_addresses if ip.startswith("192.168.0")][:1][0]
+        local_ip = [ip for ip in ip_addresses if ip.startswith("192.168.")][:1][0]
         usb_ip = ''
         server_address = socket.gethostbyname_ex(socket.gethostname())
 

@@ -1,6 +1,6 @@
 import time
 
-from applications.ideenexpo.src.twipr_manager import TWIPR_Manager
+from robots.twipr.twipr_manager import TWIPR_Manager
 
 
 def main():

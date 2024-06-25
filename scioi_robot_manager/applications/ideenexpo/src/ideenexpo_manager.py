@@ -4,7 +4,7 @@ import time
 
 from applications.ideenexpo.src import ideenexpo_settings
 from applications.ideenexpo.src.ideenexpo_gui import IdeenExpoGUI
-from applications.ideenexpo.src.twipr_manager import TWIPR_Manager
+from robots.twipr.twipr_manager import TWIPR_Manager
 from core.utils.misc import clipValue
 from extensions.joystick.joystick_manager import Joystick, JoystickManager
 

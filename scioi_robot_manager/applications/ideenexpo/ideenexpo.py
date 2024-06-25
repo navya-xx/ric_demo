@@ -1,9 +1,12 @@
 import time
 
 from applications.ideenexpo.src.ideenexpo_manager import IdeenExpoManager
+from utils.logging import Logger
 
+logger = Logger('IdeenExpo')
 
 def main():
+    logger.info("Starting IdeenExpo")
     manager = IdeenExpoManager()
     manager.init()
     manager.start()

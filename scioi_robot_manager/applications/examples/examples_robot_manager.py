@@ -4,7 +4,7 @@ import time
 
 import websockets
 
-from applications.ideenexpo.src.twipr_manager import TWIPR_Manager
+from robots.twipr.twipr_manager import TWIPR_Manager
 from device_manager.devices.robots.twipr.twipr import TWIPR
 from extensions.joystick.joystick_manager import Joystick
 from socketify import OpCode
