@@ -9,7 +9,7 @@
 
 
     export let grid = true;
-    export let mapsize = [3,3];
+    export let mapsize = [5,5];
     export let positionDisplay = false;
     export let overview = true;
     export let presentation = false;
@@ -32,13 +32,21 @@
     $: robots = (() =>{
         let data = $mapData;
         const newRobots= [];
-        for (const bot of Object.values(data)) {
+        for (const bot of Object.values(data)){
+            // if (bot.x == 0) {
+            //
+            //     bot.x = 1
+            // }
+            //
+            // if (bot.y == 0) {
+            //     bot.y = 2
+            // }
 
-            let x = ((bot.x) / mapsize[0]) * mapWidthPx;
-            let y =  mapHeightPx - ((bot.y) / mapsize[1]) * mapHeightPx;
-            let xPos = bot.x;
-            let yPos = bot.y;
-            let r = (bot.psi)%360;
+            let x = ((bot.x+mapsize[0]/2) / mapsize[0]) * mapWidthPx;
+            let y =  mapHeightPx - ((bot.y+mapsize[1]/2) / mapsize[1]) * mapHeightPx;
+            let xPos = bot.x
+            let yPos = bot.y
+            let r = (-(bot.psi)*180/3.141)%360;
             let color = botColor(bot.number);
             let transparent;
             if(overview){

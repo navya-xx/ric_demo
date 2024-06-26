@@ -179,7 +179,6 @@ def buildSample():
     }
 
     json_string = orjson.dumps(sample)
-
     sample = orjson.loads(json_string)
 
 

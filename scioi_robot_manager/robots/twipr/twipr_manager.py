@@ -4,7 +4,6 @@ from core.device_manager import DeviceManager
 from core.devices.device import Device
 from robots.twipr.twipr import TWIPR
 from extensions.optitrack.optitrack import OptiTrack
-import applications.ric_demo.src.ric_demo_settings as settings
 from utils.logging import Logger
 
 logger = Logger('Robots')
@@ -121,13 +120,14 @@ class TWIPR_Manager:
         if device.information.device_id not in self.robots:
             return
 
+        robot = self.robots[device.information.device_id]
         self.robots.pop(device.information.device_id)
 
         logger.info(f"Robot {device.information.device_id} disconnected")
 
         # Remove any joystick assignments
         for callback in self.callbacks['robot_disconnected']:
-            callback(device, *args, **kwargs)
+            callback(robot, *args, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------
     def _newOptiTrackFrame_callback(self, rigidBodyId, position, orientation, *args, **kwargs):
@@ -140,6 +140,6 @@ class TWIPR_Manager:
     def _deviceStream_callback(self, stream, device, *args, **kwargs):
         if device.information.device_id in self.robots.keys():
             for callback in self.callbacks['stream']:
-                callback(stream, device, *args, **kwargs)
+                callback(stream, self.robots[device.information.device_id], *args, **kwargs)
 
     # ------------------------------------------------------------------------------------------------------------------

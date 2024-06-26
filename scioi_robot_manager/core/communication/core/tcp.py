@@ -134,7 +134,7 @@ class TCP_Client:
         while not self._exit:
             try:
                 data = self._connection.recv(8092)
-            except ConnectionResetError or TimeoutError or Exception:
+            except Exception as e:
                 logging.warning("Error in TCP connection. Close connection")
                 self.close()
                 return

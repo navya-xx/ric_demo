@@ -96,7 +96,6 @@ declare module '$env/static/private' {
 	export const PYTHONUNBUFFERED: string;
 	export const QT_AUTO_SCREEN_SCALE_FACTOR: string;
 	export const SESSIONNAME: string;
-	export const SOLIDWORKS_SHARED: string;
 	export const SystemDrive: string;
 	export const SystemRoot: string;
 	export const TEMP: string;
@@ -207,7 +206,6 @@ declare module '$env/dynamic/private' {
 		PYTHONUNBUFFERED: string;
 		QT_AUTO_SCREEN_SCALE_FACTOR: string;
 		SESSIONNAME: string;
-		SOLIDWORKS_SHARED: string;
 		SystemDrive: string;
 		SystemRoot: string;
 		TEMP: string;

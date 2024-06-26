@@ -24,9 +24,20 @@ class RIC_Demo_Simulation:
 
     def _threadFunction(self):
         self.env.start()
-        ...
 
-    def setVirtualAgentInput(self, agent_id, input):
+    def addVirtualAgent(self, id):
+        self.env.addVirtualAgent(id)
+
+    def addRealAgent(self, id):
+        self.env.addRealAgent(id)
+
+    def removeVirtualAgent(self, id):
+        self.env.removeVirtualAgent(id)
+
+    def removeRealAgent(self, id):
+        self.env.removeRealAgent(id)
+
+    def setVirtualAgentInput(self, input, agent_id):
         if agent_id in self.env.virtual_agents.keys():
             self.env.virtual_agents[agent_id].input = input
 

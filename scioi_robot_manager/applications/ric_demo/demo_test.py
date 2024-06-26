@@ -2,7 +2,7 @@ import time
 
 from applications.ric_demo.simulation.src.dummy_device import DummyDevice
 from applications.ric_demo.simulation.src.twipr_data import buildSample
-from applications.ric_demo.robots.ric_demo_manager import RIC_Demo_RobotManager
+from applications.ric_demo.robots_demo.ric_demo_manager import RIC_Demo_RobotManager
 from utils.logging import Logger
 
 logger = Logger('RIC')

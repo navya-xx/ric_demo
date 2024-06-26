@@ -25,7 +25,7 @@
     {#if currentMode === '3D'}
         <Map3D/>
     {:else}
-        <Map2D grid={true} mapsize={[3, 3]} positionDisplay={positionDisplay} overview={overview} presentation={presentation}/>
+        <Map2D grid={true} mapsize={[5, 5]} positionDisplay={positionDisplay} overview={overview} presentation={presentation}/>
     {/if}
 
     {#if mode === 'toggle'}

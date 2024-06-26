@@ -19,7 +19,12 @@ class DummyConnection(Connection):
 class DummyDevice(Device):
 
     # === INIT =========================================================================================================
-    def __init__(self):
+    def __init__(self, id):
+
+        if not id.startswith('v'):
+            print(f"Cannot add virtual device with id {id}")
+            return
+
         self.connection = DummyConnection()
 
         self.information = DeviceInformation()
@@ -37,8 +42,8 @@ class DummyDevice(Device):
 
         self.information.device_class = 'robot'
         self.information.device_type = 'twipr'
-        self.information.device_name = 'TWIPR 6'
-        self.information.device_id = 'twipr6'
+        self.information.device_name = id
+        self.information.device_id = id
         self.information.address = 'dummy'
         self.information.revision = 'v3'
 

@@ -17,7 +17,7 @@ joysticks = {
     '0300509d5e040000130b000009057200': {
         'type': 'ControllerX',
         'id': 1,
-        'master': True
+        'master': False
     },
     '030082795e040000e002000000007200': {
         'type': 'ControllerX',

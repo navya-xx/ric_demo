@@ -47,7 +47,7 @@
 		[-1, 1],
 		[0, 360],
 		[-1, 1],
-		[-90, 90]
+		[-1.57, 1.57]
 	];
 
 	function onResize(entry: ResizeObserverEntry) {

@@ -90,7 +90,6 @@ class NodeJSGui:
 
     # === PRIVATE METHODS ==============================================================================================
     def _rxMessage_callback(self, message, *args, **kwargs):
-        print("fdhsfhdj")
         message = json.loads(message)
         for callback in self.callbacks['rx_message']:
             callback(message, *args, **kwargs)

@@ -139,6 +139,11 @@ class IdeenExpoGUI(NodeJSGui):
             },
 
         }
+
+        if new_sample['estimation']['state']['x'] == 0:
+            new_sample['estimation']['state']['x'] = 0.001
+        if new_sample['estimation']['state']['y'] == 0:
+            new_sample['estimation']['state']['y'] = 0.001
         return new_sample
 
     def _websocketClientConnected_callback(self, *args, **kwargs):
