@@ -24,17 +24,20 @@ class BabylonVisualization:
 
     _config: dict
     _run: bool
+    _show: bool
     Ts = 0.05  # 0.04
 
     # === INIT =========================================================================================================
     def __init__(self, webapp: str = babylon_path + '/pysim_env.html', webapp_config=None,
-                 world_config=None, object_config=babylon_path + 'object_config.json', fetch_function: callable = None):
+                 world_config=None, object_config=babylon_path + 'object_config.json', fetch_function: callable = None, show: bool = True):
 
         self._config = {
             'world': {},
             'object_config': {},
             'webapp_config': {}
         }
+
+        self._show = show
 
         # Load the object configuration, which stores the information which Babylon Object needs to be created for a
         # certain class
@@ -114,7 +117,10 @@ class BabylonVisualization:
 
         # Define a new event loop, otherwise it's not working
         asyncio.set_event_loop(asyncio.new_event_loop())
-        self._webapp = qmt.Webapp(self.webapp_path, config=self._config, show='chromium')
+        if self._show:
+            self._webapp = qmt.Webapp(self.webapp_path, config=self._config, show='chromium')
+        else:
+            self._webapp = qmt.Webapp(self.webapp_path, config=self._config, show='none')
         self._webapp.setupOnlineLoop(qmt.ClockDataSource(self.Ts), self.Process(self._data_queue, self.fetch_function))
         self._webapp.run()
         # self._webapp.runInProcess()

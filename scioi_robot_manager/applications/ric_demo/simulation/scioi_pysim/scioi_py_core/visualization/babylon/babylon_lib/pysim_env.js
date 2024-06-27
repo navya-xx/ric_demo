@@ -37,7 +37,7 @@ class PysimScene extends Scene {
         // --- Textbox ---
         this.ui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ui", true, this.scene);
         this.textbox_time = new BABYLON.GUI.TextBlock();
-        this.textbox_time.fontSize = 40;
+        this.textbox_time.fontSize = 20;
         this.textbox_time.text = "";
         this.textbox_time.color = "black";
         this.textbox_time.paddingTop = 3;
@@ -162,11 +162,14 @@ class PysimScene extends Scene {
         } else {
             console.warn("No world data in current sample")
         }
-        if ('time' in sample){
-            this.textbox_time.text = 'Time: ' + sample['time'].toFixed(2) + ' s'
-        } else {
-            console.warn("No time data in current sample")
+        // if ('show_time' in this.config && this.config['show_time']){
+            if ('time' in sample){
+                this.textbox_time.text = 'Time: ' + sample['time'].toFixed(2) + ' s'
+            } else {
+                console.warn("No time data in current sample")
         }
+        // }
+
 
         if ('settings' in sample){
             if ('status' in sample['settings']){

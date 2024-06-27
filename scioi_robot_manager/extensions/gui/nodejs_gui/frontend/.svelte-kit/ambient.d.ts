@@ -28,8 +28,6 @@
 declare module '$env/static/private' {
 	export const ALLUSERSPROFILE: string;
 	export const APPDATA: string;
-	export const BPPDOMAIN_MANAGER_ASM: string;
-	export const BPPDOMAIN_MANAGER_TYPE: string;
 	export const COLOR: string;
 	export const CommonProgramFiles: string;
 	export const CommonProgramW6432: string;
@@ -37,7 +35,8 @@ declare module '$env/static/private' {
 	export const ComSpec: string;
 	export const DriverData: string;
 	export const EDITOR: string;
-	export const EmpirumServer: string;
+	export const FPS_BROWSER_APP_PROFILE_STRING: string;
+	export const FPS_BROWSER_USER_PROFILE_STRING: string;
 	export const HOME: string;
 	export const HOMEDRIVE: string;
 	export const HOMEPATH: string;
@@ -45,9 +44,6 @@ declare module '$env/static/private' {
 	export const INIT_CWD: string;
 	export const LOCALAPPDATA: string;
 	export const LOGONSERVER: string;
-	export const MOTIVEAPI_INC: string;
-	export const MOTIVEAPI_LIB: string;
-	export const NIDAQmxSwitchDir: string;
 	export const NODE: string;
 	export const NODE_ENV: string;
 	export const NODE_EXE: string;
@@ -73,6 +69,8 @@ declare module '$env/static/private' {
 	export const npm_package_version: string;
 	export const NPM_PREFIX_JS: string;
 	export const NPM_PREFIX_NPM_CLI_JS: string;
+	export const NPTRACKINGTOOLS_INC: string;
+	export const NPTRACKINGTOOLS_LIB: string;
 	export const NUMBER_OF_PROCESSORS: string;
 	export const OneDrive: string;
 	export const OS: string;
@@ -88,7 +86,10 @@ declare module '$env/static/private' {
 	export const PROMPT: string;
 	export const PSModulePath: string;
 	export const PUBLIC: string;
+	export const PyCharm: string;
+	export const PYCHARM_DISPLAY_PORT: string;
 	export const PYCHARM_HOSTED: string;
+	export const PYCHARM_INTERACTIVE_PLOTS: string;
 	export const PYGAME_HIDE_SUPPORT_PROMPT: string;
 	export const PYTHONIOENCODING: string;
 	export const PYTHONPATH: string;
@@ -99,16 +100,12 @@ declare module '$env/static/private' {
 	export const SystemRoot: string;
 	export const TEMP: string;
 	export const TMP: string;
-	export const USERDNSDOMAIN: string;
 	export const USERDOMAIN: string;
 	export const USERDOMAIN_ROAMINGPROFILE: string;
 	export const USERNAME: string;
 	export const USERPROFILE: string;
-	export const VIRTUAL_ENV: string;
 	export const windir: string;
 	export const ZES_ENABLE_SYSMAN: string;
-	export const _OLD_VIRTUAL_PATH: string;
-	export const _OLD_VIRTUAL_PROMPT: string;
 }
 
 /**
@@ -142,8 +139,6 @@ declare module '$env/dynamic/private' {
 	export const env: {
 		ALLUSERSPROFILE: string;
 		APPDATA: string;
-		BPPDOMAIN_MANAGER_ASM: string;
-		BPPDOMAIN_MANAGER_TYPE: string;
 		COLOR: string;
 		CommonProgramFiles: string;
 		CommonProgramW6432: string;
@@ -151,7 +146,8 @@ declare module '$env/dynamic/private' {
 		ComSpec: string;
 		DriverData: string;
 		EDITOR: string;
-		EmpirumServer: string;
+		FPS_BROWSER_APP_PROFILE_STRING: string;
+		FPS_BROWSER_USER_PROFILE_STRING: string;
 		HOME: string;
 		HOMEDRIVE: string;
 		HOMEPATH: string;
@@ -159,9 +155,6 @@ declare module '$env/dynamic/private' {
 		INIT_CWD: string;
 		LOCALAPPDATA: string;
 		LOGONSERVER: string;
-		MOTIVEAPI_INC: string;
-		MOTIVEAPI_LIB: string;
-		NIDAQmxSwitchDir: string;
 		NODE: string;
 		NODE_ENV: string;
 		NODE_EXE: string;
@@ -187,6 +180,8 @@ declare module '$env/dynamic/private' {
 		npm_package_version: string;
 		NPM_PREFIX_JS: string;
 		NPM_PREFIX_NPM_CLI_JS: string;
+		NPTRACKINGTOOLS_INC: string;
+		NPTRACKINGTOOLS_LIB: string;
 		NUMBER_OF_PROCESSORS: string;
 		OneDrive: string;
 		OS: string;
@@ -202,7 +197,10 @@ declare module '$env/dynamic/private' {
 		PROMPT: string;
 		PSModulePath: string;
 		PUBLIC: string;
+		PyCharm: string;
+		PYCHARM_DISPLAY_PORT: string;
 		PYCHARM_HOSTED: string;
+		PYCHARM_INTERACTIVE_PLOTS: string;
 		PYGAME_HIDE_SUPPORT_PROMPT: string;
 		PYTHONIOENCODING: string;
 		PYTHONPATH: string;
@@ -213,16 +211,12 @@ declare module '$env/dynamic/private' {
 		SystemRoot: string;
 		TEMP: string;
 		TMP: string;
-		USERDNSDOMAIN: string;
 		USERDOMAIN: string;
 		USERDOMAIN_ROAMINGPROFILE: string;
 		USERNAME: string;
 		USERPROFILE: string;
-		VIRTUAL_ENV: string;
 		windir: string;
 		ZES_ENABLE_SYSMAN: string;
-		_OLD_VIRTUAL_PATH: string;
-		_OLD_VIRTUAL_PROMPT: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}

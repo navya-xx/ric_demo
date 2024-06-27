@@ -6,20 +6,21 @@ from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.objects.twipr.en
 from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.objects.world.grid import Grid2D
 
 
+
 class Environment_RIC(EnvironmentBase):
     real_agents: dict
     virtual_agents: dict
-
     floor: Grid2D
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.virtual_agents = {}
         self.real_agents = {}
+
         # self.agent1 = TWIPR_DynamicAgent(agent_id='twipr1', name='Agent 1', world=self.world, speed_control=False)
         # self.virtual_agents['twipr1'] = self.agent1
 
-        self.floor = Grid2D(self.world, cell_size=0.5, cells_x=10, cells_y=10, origin=[0, 0])
+        # self.floor = Grid2D(self.world, cell_size=0.5, cells_x=10, cells_y=10, origin=[0, 0])
 
     # ------------------------------------------------------------------------------------------------------------------
     def addRealAgent(self, agent_id):
@@ -41,7 +42,8 @@ class Environment_RIC(EnvironmentBase):
         self.virtual_agents[agent_id].scheduling.actions['dynamics'].registerAction(
             self.virtual_agents[agent_id].dynamics.scheduling.actions['update']
         )
-        self.world.scheduling.actions['dynamics'].registerAction(self.virtual_agents[agent_id].scheduling.actions['dynamics'])
+        self.world.scheduling.actions['dynamics'].registerAction(
+            self.virtual_agents[agent_id].scheduling.actions['dynamics'])
         self.scheduling.actions['controller'].registerAction(self.virtual_agents[agent_id].scheduling.actions['logic'])
 
     # ------------------------------------------------------------------------------------------------------------------

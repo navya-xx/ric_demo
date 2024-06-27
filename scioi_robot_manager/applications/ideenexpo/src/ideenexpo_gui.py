@@ -118,7 +118,7 @@ class IdeenExpoGUI(NodeJSGui):
             },
             'board': {
                 'status': 'normal',  # str
-                'battery': 16.8,  # float [V] [X]
+                'battery': sample['sensors']['power']['bat_voltage'],  # float [V] [X]
                 'charging': False,  # bool
             },
             'drive': {

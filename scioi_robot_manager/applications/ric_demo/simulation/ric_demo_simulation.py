@@ -3,38 +3,71 @@ import random
 import threading
 import time
 
+from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.utils.orientations import twiprToRotMat
 from applications.ric_demo.simulation.src.ric_demo_environment import Environment_RIC
+from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.visualization.babylon_new.babylon import \
+    BabylonVisualization
 
 
 class RIC_Demo_Simulation:
     env: Environment_RIC
 
     _thread: threading.Thread
+    _visualizationThread: threading.Thread
 
     def __init__(self):
-        self.env = Environment_RIC(visualization='babylon', webapp_config={'title': 'RIC Demo'})
+        self.env = Environment_RIC()
+        self.visualization = BabylonVisualization(show='none')
 
-        self._thread = threading.Thread(target=self._threadFunction)
+        self._visualizationThread = threading.Thread(target=self._threadFunction)
+        self._thread = threading.Thread(target=self.env.start)
 
     def init(self):
         self.env.init()
+        self.visualization.init()
 
     def start(self):
+        self.visualization.start()
         self._thread.start()
+        self._visualizationThread.start()
 
     def _threadFunction(self):
-        self.env.start()
+        while True:
+            for id, agent in self.env.virtual_agents.items():
+                data = {
+                    'position': {
+                        'x': agent.state['x'].value,
+                        'y': agent.state['y'].value,
+                    },
+                    'orientation': twiprToRotMat(agent.state['theta'].value, agent.state['psi'].value)
+                }
+                self.visualization.updateObject(id, data)
+
+            for id, agent in self.env.real_agents.items():
+                data = {
+                    'position': {
+                        'x': agent.configuration['pos']['x'],
+                        'y': agent.configuration['pos']['y'],
+                    },
+                    'orientation': twiprToRotMat(agent.configuration['theta'].value, agent.configuration['psi'].value)
+                }
+                self.visualization.updateObject(id, data)
+            time.sleep(0.05)
 
     def addVirtualAgent(self, id):
+        self.visualization.addObject(id, 'twipr', {})
         self.env.addVirtualAgent(id)
 
     def addRealAgent(self, id):
+        self.visualization.addObject(id, 'twipr', {'color': [1, 0, 0]})
         self.env.addRealAgent(id)
 
     def removeVirtualAgent(self, id):
+        self.visualization.removeObject(id)
         self.env.removeVirtualAgent(id)
 
     def removeRealAgent(self, id):
+        self.visualization.removeObject(id)
         self.env.removeRealAgent(id)
 
     def setVirtualAgentInput(self, input, agent_id):

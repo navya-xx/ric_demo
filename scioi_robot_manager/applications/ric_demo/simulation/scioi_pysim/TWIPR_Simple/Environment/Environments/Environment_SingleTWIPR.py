@@ -30,7 +30,7 @@ class Environment_SingleTWIPR_KeyboardInput(EnvironmentBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.agent1 = TWIPR_DynamicAgent(agent_id=1, name='Agent 1', world=self.world, speed_control=True)
+        self.agent1 = TWIPR_DynamicAgent(agent_id=1, name='Agent 1', world=self.world, speed_control=False)
         self.keys = ArrowKeys()
 
     def action_input(self, *args, **kwargs):
@@ -38,6 +38,14 @@ class Environment_SingleTWIPR_KeyboardInput(EnvironmentBase):
 
     def action_controller(self, *args, **kwargs):
         super().action_controller(*args, **kwargs)
-        self.agent1.input = [2 * (self.keys.keys['UP'] - self.keys.keys['DOWN']),
-                             5 * (self.keys.keys['LEFT'] - self.keys.keys['RIGHT'])]
+        # self.agent1.input = [1 * (self.keys.keys['UP'] - self.keys.keys['DOWN']),
+        #                      2 * (self.keys.keys['LEFT'] - self.keys.keys['RIGHT'])]
+
+        forward = -0.1*(self.keys.keys['UP'] - self.keys.keys['DOWN'])
+        turn = -0.05*(self.keys.keys['LEFT'] - self.keys.keys['RIGHT'])
+        self.agent1.input = [forward + turn,
+                             forward-turn]
+
+        # self.agent1.input = [-0.1*10, 0.1*10]
+
         pass

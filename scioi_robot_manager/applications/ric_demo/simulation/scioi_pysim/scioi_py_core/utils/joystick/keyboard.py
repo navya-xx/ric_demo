@@ -4,9 +4,7 @@ import time
 from pynput.keyboard import Key, Listener, Controller
 
 
-
 class ArrowKeys:
-
     _thread: threading.Thread
     keys: dict
 
@@ -53,8 +51,3 @@ class ArrowKeys:
             self.keys['LEFT'] = 0
         if Key.right == key:
             self.keys['RIGHT'] = 0
-
-
-
-
-
