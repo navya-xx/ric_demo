@@ -224,7 +224,7 @@ class RobotManager:
     # === PRIVATE METHODS ==============================================================================================
     def _threadFunction(self):
         while True:
-            # Write the input to all the robots
+            # Write the input to all the ric_robots
             for assignment in self.joystick_assignments.values():
                 val1 = 0
                 val2 = 0
@@ -424,7 +424,7 @@ class RobotManager:
         # if self.masterJoystick is None:
         #     return
         #
-        # if len(self.robots) > 1:
+        # if len(self.ric_robots) > 1:
         #     self.emergencyStop()
         #     return
         #

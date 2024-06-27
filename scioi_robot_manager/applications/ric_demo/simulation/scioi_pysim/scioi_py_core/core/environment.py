@@ -63,6 +63,7 @@ class Environment(scheduling.ScheduledObject):
         self.scheduling.actions['step'].run(*args, **kwargs)
 
     def start(self, *args, **kwargs):
+        time.sleep(4)
         self.scheduler.run(*args, **kwargs)
 
     def init(self, *args, **kwargs):

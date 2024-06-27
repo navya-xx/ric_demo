@@ -268,7 +268,7 @@ class IdeenExpoManager:
                         self._unassignJoystick(joystick_id)
                 else:
 
-                    # Check if it is assigned to another robot in the list of robots
+                    # Check if it is assigned to another robot in the list of ric_robots
                     if joystick_id in self.joystick_assignments.keys():
                         connected_robot_id = self.joystick_assignments[joystick_id][
                             'robot'].device.information.device_id

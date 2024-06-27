@@ -848,8 +848,10 @@ class TWIPR_DynamicAgent(TWIPR_Agent, core.agents.DynamicAgent):
 
     # ------------------------------------------------------------------------------------------------------------------
     def _controller(self, input=None):
+
         if input is not None:
             self.input = input
+
 
         if self.controller_v is not None and self.controller_psidot is not None:
             e_v = self.input['v'] - self.dynamics.state['v']

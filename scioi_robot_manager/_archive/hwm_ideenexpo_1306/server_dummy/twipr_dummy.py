@@ -12,7 +12,7 @@ from device_manager.communication.connection import Connection
 from device_manager.communication.protocols.protocol import Message
 from device_manager.communication.protocols.tcp.tcp_json_protocol import TCP_JSON_Message
 from device_manager.devices.robots.twipr.twipr import TWIPR
-# from hardware_manager.devices.robots.twipr.twipr_data import twipr_wifi_sample
+# from hardware_manager.devices.ric_robots.twipr.twipr_data import twipr_wifi_sample
 from device_manager.devices.robots.twipr.twipr_data import twipr_wifi_sample, get_twipr_wifi_sample
 import numpy as np
 

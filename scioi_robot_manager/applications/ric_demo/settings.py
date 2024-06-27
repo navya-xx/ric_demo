@@ -59,7 +59,7 @@ testbed = {
     'grid': [10, 10]
 }
 
-# optitrack = {
+# optitrack.py = {
 #     'server_address': "192.168.0.100",
 #     'local_address': "192.168.0.100",
 #     'multicast_address': "192.168.0.11"

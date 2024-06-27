@@ -12,6 +12,9 @@ from applications.ric_demo.simulation.src.twipr_data import TWIPR_Control_Mode, 
 from applications.ric_demo.ric_utils import generate_next_id
 from robots.twipr.twipr import TWIPR
 from utils.timer import Timer
+from applications.ric_demo.consensus.ric_consensus import _quat2eul, _wrap2Pi
+
+from applications.ric_demo.optitrack.OptiClass import OptiClient
 
 logger = logging.getLogger("RIC DEMO")
 logger.setLevel("DEBUG")
@@ -21,7 +24,6 @@ class RIC_Demo:
     mode: str
     ric_robot_manager: RIC_Demo_RobotManager
     simulation: RIC_Demo_Simulation
-    optitrack: ...
     gui: ...
     consensus: Consensus
 
@@ -31,8 +33,8 @@ class RIC_Demo:
 
     def __init__(self):
 
-        self.list_of_agent_ids = ['twipr1', 'twipr2']
-        self.num_of_agents = 10
+        #self.optitrack = OptiClient("127.0.0.1", "127.0.0.1", True, 0)
+        #self.optitrack.run()
 
         self.ric_robot_manager = RIC_Demo_RobotManager()
         self.ric_robot_manager.registerCallback('stream', self._robotManagerStream_callback)
@@ -45,6 +47,9 @@ class RIC_Demo:
 
         self._virtualRobotStreamTimer = Timer()
 
+
+        self.ric_robot_manager.gui.registerCallback('rx_message', self._guiMessage_callback)
+
         self._thread = threading.Thread(target=self._threadFunction)
 
     def init(self):
@@ -53,19 +58,46 @@ class RIC_Demo:
 
     def start(self):
         self.ric_robot_manager.start()
+        time.sleep(5)
         time.sleep(0.5)
         self.simulation.start()
         time.sleep(0.5)
-        self.consensus.start()
-        time.sleep(0.5)
+
+        self.addVirtualAgent('vtwipr1')
+        self.simulation.env.virtual_agents['vtwipr1'].setPosition(x=1, y=0)
+        self.addVirtualAgent('vtwipr2')
+        self.simulation.env.virtual_agents['vtwipr2'].setPosition(x=-1, y=-0)
+        self.addVirtualAgent('vtwipr3')
+        self.simulation.env.virtual_agents['vtwipr3'].setPosition(x=-0, y=1)
+        self.addVirtualAgent('vtwipr4')
+        self.simulation.env.virtual_agents['vtwipr4'].setPosition(x=-0, y=-1)
+        self.addVirtualAgent('vtwipr5')
+        self.simulation.env.virtual_agents['vtwipr5'].setPosition(x=-1, y=-2)
+        self.addVirtualAgent('vtwipr6')
+        self.simulation.env.virtual_agents['vtwipr6'].setPosition(x=1, y=2)
+        self.addVirtualAgent('vtwipr7')
+        self.simulation.env.virtual_agents['vtwipr7'].setPosition(x=-1, y=2)
+        self.addVirtualAgent('vtwipr8')
+        self.simulation.env.virtual_agents['vtwipr8'].setPosition(x=1, y=-2)
+
+        self.consensus.formation(formation_type='circle', radius=2)
+        # self.consensus.agents['vtwipr1'].formation_ref = {'x': -1, 'y':0}
+        # self.consensus.agents['vtwipr2'].formation_ref = {'x': 1, 'y': 0}
+        # self.consensus.agents['vtwipr3'].formation_ref = {'x': 0, 'y': -1}
+        # self.consensus.agents['vtwipr4'].formation_ref = {'x': 0, 'y': 1}
 
         self._thread.start()
 
-        time.sleep(4)
-        # self.addVirtualAgent('vtwipr1')
-        #
-        # agent = self.simulation.env.virtual_agents['vtwipr1']
-        # agent.setPosition(x=2, y=1)
+        time.sleep(5)
+        self.simulation.env.visualization.start()
+
+        time.sleep(0.5)
+
+    def opti_pos_rot(self, robot_id):
+        pos = self.optitrack.rigid_bodies[getattr(self.optitrack, robot_id)]['pos'][0:2]
+        rot = self.optitrack.rigid_bodies[getattr(self.optitrack, robot_id)]['rot']
+        rot_euler = _quat2eul(rot)
+        return pos, rot_euler
 
     def _threadFunction(self):
         self._virtualRobotStreamTimer.start()
@@ -95,12 +127,13 @@ class RIC_Demo:
 
     def _robotManagerStream_callback(self, stream, robot, *args, **kwargs):
         if not robot.id.startswith('v'):
-            x = stream.data['estimation']['state']['x']
-            y = stream.data['estimation']['state']['y']
+            pos, rot = self.opti_pos_rot(robot.id)
+            x = pos[0] # stream.data['estimation']['state']['x']
+            y = pos[1] # stream.data['estimation']['state']['y']
             v = stream.data['estimation']['state']['v']
-            theta = stream.data['estimation']['state']['theta']
+            theta = rot[0] # stream.data['estimation']['state']['theta']
             theta_dot = stream.data['estimation']['state']['theta_dot']
-            psi = stream.data['estimation']['state']['psi']
+            psi = rot[2] # stream.data['estimation']['state']['psi']
             psi_dot = stream.data['estimation']['state']['psi_dot']
 
             if robot.id in self.simulation.env.real_agents.keys():
@@ -126,8 +159,7 @@ class RIC_Demo:
             self.consensus.addAgent(robot.id)
             robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
             time.sleep(0.5)
-            self.consensus.agents[robot.id].input_callback = self.ric_robot_manager.robotManager.robots[
-                robot.id].setInput
+            self.consensus.agents[robot.id].input_callback = self.ric_robot_manager.robotManager.robots[robot.id].setInput
 
     def _robotManagerRobotDisconnected_callback(self, robot, *args, **kwargs):
         print(f"RIC DEMO: ROBOT DISCONNECTED: {robot.id}")
@@ -169,24 +201,11 @@ class RIC_Demo:
 
             return sample
 
-    # def consensusinputcallback(self, agent_id, input):
-    #     ...
+    def _guiMessage_callback(self, message, *args, **kwargs):
+        print(message)
+        if message['data']['command'] == 'consensus start':
+            self.consensus.start()
 
-    def formation(self, formation_type='circle', *args, **kwargs):
-        if formation_type == 'circle':
-            idx = 0
-            radius = kwargs['radius']
-            for agent in self.list_of_agent_ids:
-                self.consensus.agents[agent].formation_ref['x'] = radius * np.cos(2 * np.pi * idx / self.num_of_agents)
-                self.consensus.agents[agent].formation_ref['y'] = radius * np.sin(2 * np.pi * idx / self.num_of_agents)
-                idx += 1
-        elif formation_type == 'line':
-            length = kwargs['length']
-            space = length / (self.num_of_agents - 1)
-            idx = 0
-            for agent in self.list_of_agent_ids:
-                self.consensus.agents[agent].formation_ref['x'] = -length / 2 + space * idx
-                self.consensus.agents[agent].formation_ref['y'] = 0
 
 
 def main():

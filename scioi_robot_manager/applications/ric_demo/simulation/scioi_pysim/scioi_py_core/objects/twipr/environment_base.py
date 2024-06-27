@@ -43,7 +43,6 @@ class EnvironmentBase(core.environment.Environment):
         # Set the world configuration in the babylon visualization if needed
         if self.visualization is not None:
             self.visualization.setWorldConfig(self.world.generateWorldConfig())
-            self.visualization.start()
             setBabylonSettings(status='')
 
     def _action_entry(self, *args, **kwargs):

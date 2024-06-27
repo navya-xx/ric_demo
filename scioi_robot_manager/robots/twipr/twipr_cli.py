@@ -54,7 +54,7 @@ class TWIPR_Manager_CommandSet(CommandSet):
 
 
 class TWIPR_Manager_Command_List(Command):
-    description = 'Lists all connected TWIPR robots'
+    description = 'Lists all connected TWIPR ric_robots'
     name = 'list'
     manager: TWIPR_Manager
     arguments = {
@@ -75,4 +75,4 @@ class TWIPR_Manager_Command_List(Command):
         self.manager = manager
 
     def function(self, *args, **kwargs):
-        print("Listing connected TWIPR robots...")
+        print("Listing connected TWIPR ric_robots...")

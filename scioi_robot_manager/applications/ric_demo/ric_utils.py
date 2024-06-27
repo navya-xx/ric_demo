@@ -12,3 +12,4 @@ def generate_next_id(ids):
     next_id = prefix + str(max_id + 1)
 
     return next_id
+

@@ -17,7 +17,7 @@ logger.setLevel('INFO')
 class VisionRobotManager:
     deviceManager: DeviceManager
     joysticks: JoystickManager
-    # optitrack: OptiTrack
+    # optitrack.py: OptiTrack
 
     callbacks: dict
 
