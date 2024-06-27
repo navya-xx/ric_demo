@@ -64,6 +64,21 @@
       "show_collision_frame": false
     }
   },
+  "floor": {
+    "BabylonObject": "TiledGround",
+    "config": {
+      "color1": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "color2": [
+        0.65,
+        0.65,
+        0.65
+      ]
+    }
+  },
   "twipr_agent_double_pendulum": {
     "BabylonObject": "TWIPR_Robot_DoublePendulum",
     "config": {

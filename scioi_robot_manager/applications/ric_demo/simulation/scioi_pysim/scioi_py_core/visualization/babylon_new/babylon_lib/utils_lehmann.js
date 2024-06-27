@@ -1,5 +1,16 @@
 class TiledGround{
-    constructor(scene,tile_size,tiles_x, tiles_y,color1,color2){
+    constructor(scene,id,config){
+        let default_config = {
+            'color1': [0.5,0.5,0.5],
+            'color2': [0.65,0.65,0.65]
+        }
+        this.config = {...default_config, ...config}
+        let tile_size = this.config['tile_size']
+        let tiles_x = this.config['tiles_x']
+        let tiles_y = this.config['tiles_y']
+        let color1 = this.config['color1']
+        let color2 = this.config['color2']
+
         var grid = {
             'h' : tiles_x,
             'w' : tiles_y

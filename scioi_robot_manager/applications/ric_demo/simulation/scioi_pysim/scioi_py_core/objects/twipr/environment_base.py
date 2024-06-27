@@ -17,8 +17,10 @@ class EnvironmentBase(core.environment.Environment):
         super().__init__(*args, **kwargs)
         self.world = EnvironmentTWIPR_objects.DynamicWorld_XYZR_Simple(name='world', parent=self)
 
-        if visualization == 'babylon':
-            self.visualization = BabylonVisualization()
+        self.visualization = None
+
+        # if visualization == 'babylon':
+        #     self.visualization = BabylonVisualization()
 
         # Actions
         core.scheduling.Action(name='input', object=self, priority=0, parent=self.action_step,
@@ -37,7 +39,6 @@ class EnvironmentBase(core.environment.Environment):
 
     # === ACTIONS ======================================================================================================
     def _init(self, *args, **kwargs):
-        ...
         # Set the world configuration in the babylon visualization if needed
         if self.visualization is not None:
             self.visualization.setWorldConfig(self.world.generateWorldConfig())

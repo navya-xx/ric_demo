@@ -45,8 +45,6 @@ class RIC_Demo:
 
         self._virtualRobotStreamTimer = Timer()
 
-        self.ric_robot_manager.gui.registerCallback('rx_message', self._guiMessage_callback)
-
         self._thread = threading.Thread(target=self._threadFunction)
 
     def init(self):
@@ -55,19 +53,18 @@ class RIC_Demo:
 
     def start(self):
         self.ric_robot_manager.start()
-        time.sleep(0.5)
         self.simulation.start()
-        time.sleep(0.5)
+
+        while not self.simulation.visualization.loaded:
+            time.sleep(0.1)
+        self.simulation.visualization.addObject('floor1', 'floor', {'tile_size': 0.5, 'tiles_x': 10, 'tiles_y': 10})
+        print("START")
         self.consensus.start()
         time.sleep(0.5)
 
         self._thread.start()
 
         time.sleep(4)
-        # self.addVirtualAgent('vtwipr1')
-        #
-        # agent = self.simulation.env.virtual_agents['vtwipr1']
-        # agent.setPosition(x=2, y=1)
 
     def _threadFunction(self):
         self._virtualRobotStreamTimer.start()
@@ -152,7 +149,6 @@ class RIC_Demo:
         self.consensus.addAgent(agent_id)
         virtual_robot_device = DummyDevice(id=agent_id)
         self.consensus.agents[agent_id].input_callback = self.simulation.setVirtualAgentInput
-        # manager.robotManager.deviceManager._deviceRegistered_callback(dummy_twipr_device)
         self.ric_robot_manager.robotManager.deviceManager._deviceRegistered_callback(virtual_robot_device)
 
     def buildSampleFromSimulation(self, robot_id):
@@ -170,9 +166,6 @@ class RIC_Demo:
             sample['estimation']['state']['psi_dot'] = virtual_agent.dynamics.state['psi_dot'].value
 
             return sample
-
-    # def consensusinputcallback(self, agent_id, input):
-    #     ...
 
     def formation(self, formation_type='circle', *args, **kwargs):
         if formation_type == 'circle':

@@ -55,7 +55,7 @@ class PysimScene extends Scene {
 
         this.textbox_title = new BABYLON.GUI.TextBlock();
         this.textbox_title.fontSize = 40;
-        this.textbox_title.text = "Placeholder";
+        this.textbox_title.text = "";
         this.textbox_title.color = "black";
         this.textbox_title.paddingTop = 3;
         this.textbox_title.paddingLeft = 3;
@@ -88,7 +88,7 @@ class PysimScene extends Scene {
         // object_id, object_type, object_config, visualization_config
 
          // world_objects['twipr1'] = new TWIPR_Robot(this.scene, 'twipr1', {'mesh': './models/twipr/twipr_generic', 'physics': {'wheel_diameter': 0.12}})
-        let tg = new TiledGround(this.scene, 0.5, 10, 10, [0.5,0.5,0.5], [0.6,0.6,0.6])
+        // let tg = new TiledGround(this.scene, 0.5, 10, 10, [0.5,0.5,0.5], [0.6,0.6,0.6])
         backend.sendMessage({'loaded': 1})
         return this.scene;
     }
