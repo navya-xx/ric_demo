@@ -1,7 +1,7 @@
 from applications.ric_demo.simulation.scioi_pysim.scioi_py_core import core as core
 
 from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.objects.twipr import EnvironmentTWIPR_objects
-from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.visualization.babylon.babylon import BabylonVisualization
+from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.visualization.babylon_new.babylon import BabylonVisualization
 
 from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.utils.babylon import setBabylonSettings
 
@@ -13,14 +13,12 @@ class EnvironmentBase(core.environment.Environment):
     Ts = 0.02
     name = 'environment'
 
-    def __init__(self, visualization=None, *args, **kwargs):
+    def __init__(self, visualization=None, show_visualization=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.world = EnvironmentTWIPR_objects.DynamicWorld_XYZR_Simple(name='world', parent=self)
 
         if visualization == 'babylon':
-            self.visualization = BabylonVisualization(fetch_function=self.getVisualizationSample, *args, **kwargs)
-        else:
-            self.visualization = None
+            self.visualization = BabylonVisualization()
 
         # Actions
         core.scheduling.Action(name='input', object=self, priority=0, parent=self.action_step,
@@ -59,13 +57,7 @@ class EnvironmentBase(core.environment.Environment):
         pass
 
     def action_visualization(self, *args, **kwargs):
-        ...
-        # sample = {
-        #     'time': self.scheduling.tick_global * self.Ts,
-        #     'world': self.world.getSample(),
-        #     'settings': getBabylonSettings()
-        # }
-        # self.babylon.sendSample(sample)
+        pass
 
     def action_output(self, *args, **kwargs):
         pass

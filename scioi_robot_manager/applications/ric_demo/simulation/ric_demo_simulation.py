@@ -12,7 +12,7 @@ class RIC_Demo_Simulation:
     _thread: threading.Thread
 
     def __init__(self):
-        self.env = Environment_RIC(visualization='babylon', webapp_config={'title': 'RIC Demo'})
+        self.env = Environment_RIC(visualization='babylon', show_visualization=False, webapp_config={'title': '', 'show_time': True})
 
         self._thread = threading.Thread(target=self._threadFunction)
 

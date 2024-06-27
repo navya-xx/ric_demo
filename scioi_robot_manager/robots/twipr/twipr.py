@@ -68,5 +68,6 @@ class TWIPR:
     def setSpeed(self, v, psi_dot):
         ...
 
-    def _onStreamCallback(self, *args, **kwargs):
+    def _onStreamCallback(self, stream, *args, **kwargs):
+
         ...

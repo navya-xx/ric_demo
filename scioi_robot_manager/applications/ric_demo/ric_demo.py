@@ -45,6 +45,8 @@ class RIC_Demo:
 
         self._virtualRobotStreamTimer = Timer()
 
+        self.ric_robot_manager.gui.registerCallback('rx_message', self._guiMessage_callback)
+
         self._thread = threading.Thread(target=self._threadFunction)
 
     def init(self):

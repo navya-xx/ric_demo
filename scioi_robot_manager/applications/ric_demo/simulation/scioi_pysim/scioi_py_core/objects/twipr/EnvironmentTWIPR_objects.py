@@ -371,6 +371,11 @@ TWIPR_Michael_Model = TwiprModel(m_b=2.5, m_w=0.636, l=0.026, d_w=0.28, I_w=5.17
                                  I_z=0.03, c_alpha=4.6302e-4, r_w=0.055, tau_theta=1, tau_x=1,
                                  max_pitch=np.deg2rad(105))
 
+TWIPR_Small_Model = TwiprModel(m_b=1.0, m_w=0.2856, l=0.02, d_w=0.165, I_w=5.1762e-4 * 0.5, I_w2=6.1348e-04 * 0.5,
+                               I_y=0.008,
+                               I_x=0.02,
+                               I_z=0.03, c_alpha=4.6302e-4, r_w=0.06, tau_theta=1, tau_x=1,
+                               max_pitch=np.deg2rad(105))
 
 class TWIPR_2D_Linear:
     model: TwiprModel
@@ -600,9 +605,9 @@ class TWIPR_3D_Linear(core.dynamics.LinearDynamics):
              [0, 0, 0, 0, 0, 1],
              [0, 0, 0, 0, 0, -D_33 / V_2]]
 
-        B_1 = (self.model.I_y + self.model.m_b * self.model.l ** 2) / self.model.r_w + self.model.m_b * self.model.l
-        B_2 = self.model.m_b * self.model.l / self.model.r_w + self.model.m_b + 2 * self.model.m_w + 2 * self.model.I_w / self.model.r_w ** 2
-        B_3 = self.model.d_w / (2 * self.model.r_w)
+        B_1 = 10*((self.model.I_y + self.model.m_b * self.model.l ** 2) / self.model.r_w + self.model.m_b * self.model.l)
+        B_2 = 10*(self.model.m_b * self.model.l / self.model.r_w + self.model.m_b + 2 * self.model.m_w + 2 * self.model.I_w / self.model.r_w ** 2)
+        B_3 = 10*(self.model.d_w / (2 * self.model.r_w))
 
         B = [[0, 0],
              [B_1 / V_1, B_1 / V_1],
@@ -688,7 +693,7 @@ class TWIPR_Dynamics_3D(core.dynamics.Dynamics):
         psi = state[5].value
         psi_dot = state[6].value
 
-        u = [input[0].value, input[1].value]
+        u = [10*input[0].value, 10*input[1].value]
 
         C_12 = (self.model.I_y + self.model.m_b * self.model.l ** 2) * self.model.m_b * self.model.l
         C_22 = self.model.m_b ** 2 * self.model.l ** 2 * np.cos(theta)
@@ -827,7 +832,7 @@ class TWIPR_DynamicAgent(TWIPR_Agent, core.agents.DynamicAgent):
         if poles is None:
             poles = twipr_3d_poles_default
 
-        self.dynamics = self.dynamics_class(Ts=0.02, model=TWIPR_Michael_Model)  # TODO: THIS IS REALLY BAD!
+        self.dynamics = self.dynamics_class(Ts=0.02, model=TWIPR_Small_Model)  # TODO: THIS IS REALLY BAD!
 
         super().__init__(world=world, agent_id=agent_id, *args, **kwargs)
 
@@ -841,6 +846,10 @@ class TWIPR_DynamicAgent(TWIPR_Agent, core.agents.DynamicAgent):
             self.input_space = TWIPR_3D_InputSpace()
 
         self.linear_dynamics = TWIPR_3D_Linear(self.dynamics.model, Ts, poles, eigenvectors)
+        print(self.linear_dynamics.K)
+        self.linear_dynamics.K = np.asarray([[0, -0.035, -0.06, -0.01, 0, -0.009],
+                                             [0, -0.035, -0.06, -0.01, 0, 0.009]])
+
         self.state_ctrl_K = np.hstack((np.zeros((2, 1)), self.linear_dynamics.K))
         self.input = self.input_space.getState()
 
