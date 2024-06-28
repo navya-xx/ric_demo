@@ -33,8 +33,8 @@ class RIC_Demo:
 
     def __init__(self):
 
-        #self.optitrack = OptiClient("127.0.0.1", "127.0.0.1", True, 0)
-        #self.optitrack.run()
+        self.optitrack = OptiClient("127.0.0.1", "127.0.0.1", True, 0)
+        self.optitrack.run()
 
         self.ric_robot_manager = RIC_Demo_RobotManager()
         self.ric_robot_manager.registerCallback('stream', self._robotManagerStream_callback)
@@ -47,7 +47,6 @@ class RIC_Demo:
 
         self._virtualRobotStreamTimer = Timer()
 
-
         self.ric_robot_manager.gui.registerCallback('rx_message', self._guiMessage_callback)
 
         self._thread = threading.Thread(target=self._threadFunction)
@@ -58,40 +57,19 @@ class RIC_Demo:
 
     def start(self):
         self.ric_robot_manager.start()
-        time.sleep(5)
-        time.sleep(0.5)
+        time.sleep(1)
         self.simulation.start()
-        time.sleep(0.5)
-
-        self.addVirtualAgent('vtwipr1')
-        self.simulation.env.virtual_agents['vtwipr1'].setPosition(x=1, y=0)
-        self.addVirtualAgent('vtwipr2')
-        self.simulation.env.virtual_agents['vtwipr2'].setPosition(x=-1, y=-0)
-        self.addVirtualAgent('vtwipr3')
-        self.simulation.env.virtual_agents['vtwipr3'].setPosition(x=-0, y=1)
-        self.addVirtualAgent('vtwipr4')
-        self.simulation.env.virtual_agents['vtwipr4'].setPosition(x=-0, y=-1)
-        self.addVirtualAgent('vtwipr5')
-        self.simulation.env.virtual_agents['vtwipr5'].setPosition(x=-1, y=-2)
-        self.addVirtualAgent('vtwipr6')
-        self.simulation.env.virtual_agents['vtwipr6'].setPosition(x=1, y=2)
-        self.addVirtualAgent('vtwipr7')
-        self.simulation.env.virtual_agents['vtwipr7'].setPosition(x=-1, y=2)
-        self.addVirtualAgent('vtwipr8')
-        self.simulation.env.virtual_agents['vtwipr8'].setPosition(x=1, y=-2)
-
-        self.consensus.formation(formation_type='circle', radius=2)
-        # self.consensus.agents['vtwipr1'].formation_ref = {'x': -1, 'y':0}
-        # self.consensus.agents['vtwipr2'].formation_ref = {'x': 1, 'y': 0}
-        # self.consensus.agents['vtwipr3'].formation_ref = {'x': 0, 'y': -1}
-        # self.consensus.agents['vtwipr4'].formation_ref = {'x': 0, 'y': 1}
-
+        time.sleep(1)
         self._thread.start()
 
-        time.sleep(5)
-        self.simulation.env.visualization.start()
+        while not self.simulation.visualization.loaded:
+            time.sleep(0.1)
+        self.simulation.visualization.addObject('floor1', 'floor', {'tile_size': 0.4, 'tiles_x': 10, 'tiles_y': 10})
 
-        time.sleep(0.5)
+        time.sleep(5)
+
+        self.ric_robot_manager.gui.print("START")
+        print("START")
 
     def opti_pos_rot(self, robot_id):
         pos = self.optitrack.rigid_bodies[getattr(self.optitrack, robot_id)]['pos'][0:2]
@@ -123,7 +101,7 @@ class RIC_Demo:
                             agent.state['psi'] = sample['estimation']['state']['psi']
                             agent.state['psi_dot'] = sample['estimation']['state']['psi_dot']
 
-            time.sleep(0.01)
+            time.sleep(0.1)
 
     def _robotManagerStream_callback(self, stream, robot, *args, **kwargs):
         if not robot.id.startswith('v'):
@@ -171,7 +149,7 @@ class RIC_Demo:
             logger.warning(f"Cannot add virtual agent with id not starting with \"v\"")
             return
         if agent_id is None:
-            ids = self.simulation.env.virtual_agents.keys()
+            ids = list(self.simulation.env.virtual_agents.keys())
             agent_id = generate_next_id(ids)
         else:
             if agent_id in self.simulation.env.virtual_agents.keys():
@@ -179,10 +157,10 @@ class RIC_Demo:
                 return
 
         self.simulation.addVirtualAgent(agent_id)
+        time.sleep(0.5)
         self.consensus.addAgent(agent_id)
         virtual_robot_device = DummyDevice(id=agent_id)
         self.consensus.agents[agent_id].input_callback = self.simulation.setVirtualAgentInput
-        # manager.robotManager.deviceManager._deviceRegistered_callback(dummy_twipr_device)
         self.ric_robot_manager.robotManager.deviceManager._deviceRegistered_callback(virtual_robot_device)
 
     def buildSampleFromSimulation(self, robot_id):
@@ -203,10 +181,32 @@ class RIC_Demo:
 
     def _guiMessage_callback(self, message, *args, **kwargs):
         print(message)
-        if message['data']['command'] == 'consensus start':
-            self.consensus.start()
+        if 'command' in message['data']:
+            if message['data']['command'] == 'consensus start':
+                self.run_consensus()
+            elif message['data']['command'].startswith('create virtual devices'):
+                num_devs = int(message['data']['command'].split(" ")[-1])
+                self.create_virtual_devices(num_devs, spawn_type='random')
 
+    def create_virtual_devices(self, num_devs, spawn_type='random'):
+        for i in range(num_devs):
+            if len(self.simulation.env.virtual_agents.keys()) == 0:
+                agent_id = 'vtwipr1'
+            else:
+                agent_id = generate_next_id(list(self.simulation.env.virtual_agents.keys()))
+            self.addVirtualAgent(agent_id)
+            if spawn_type == 'random':
+                x_rand, y_rand = np.random.uniform(-2, 2, 2).tolist()
+                self.simulation.env.virtual_agents[agent_id].setPosition(x=x_rand, y=y_rand)
+            elif spawn_type == 'line':
+                x_line = -2 + i*4/num_devs + 2/num_devs
+                y_line = 0
+                self.simulation.env.virtual_agents[agent_id].setPosition(x=x_line, y=y_line)
+            time.sleep(0.5)
 
+    def run_consensus(self):
+        self.consensus.formation(formation_type='circle', radius=1)
+        self.consensus.start()
 
 def main():
     ric_demo = RIC_Demo()
