@@ -10,6 +10,9 @@ from extensions.joystick.joystick_manager import Joystick, JoystickManager
 logger = logging.getLogger('RIC')
 logger.setLevel('INFO')
 
+torque_turn_max_cmd = 0.06
+torque_forward_max_cmd = 0.06
+
 
 class RIC_Demo_RobotManager:
     robotManager: TWIPR_Manager
@@ -260,7 +263,9 @@ class RIC_Demo_RobotManager:
     # ------------------------------------------------------------------------------------------------------------------
 
     def _calculateInputValues(self, joystick) -> list:
-        ...
+        forward = joystick.axis[1] * torque_forward_max_cmd
+        turn = joystick.axis[2] * torque_turn_max_cmd
+        return [forward + turn, forward - turn]
         # forward = 0
         # turn = 0
         # master_boost = 0
