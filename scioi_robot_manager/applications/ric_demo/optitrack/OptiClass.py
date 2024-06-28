@@ -210,7 +210,7 @@ if __name__ == "__main__":
 
     opti = OptiClient("127.0.0.1", "127.0.0.1", True, 0)
     opti.run()
-    tracked_asset = opti.twipr1
+    tracked_asset = 4
     while True:
         if tracked_asset in opti.rigid_bodies:
             print(opti.rigid_bodies[tracked_asset]['pos'], "\t", opti.rigid_bodies[tracked_asset]["rot"])

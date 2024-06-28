@@ -15,6 +15,7 @@ from utils.timer import Timer
 from applications.ric_demo.consensus.ric_consensus import _quat2eul, _wrap2Pi
 
 from applications.ric_demo.optitrack.OptiClass import OptiClient
+from applications.ric_demo import settings
 
 logger = logging.getLogger("RIC DEMO")
 logger.setLevel("DEBUG")
@@ -72,9 +73,12 @@ class RIC_Demo:
         print("START")
 
     def opti_pos_rot(self, robot_id):
-        pos = self.optitrack.rigid_bodies[getattr(self.optitrack, robot_id)]['pos'][0:2]
-        rot = self.optitrack.rigid_bodies[getattr(self.optitrack, robot_id)]['rot']
+        optitrack_id = settings.agents[robot_id]['optitrack_id']
+        pos = self.optitrack.rigid_bodies[optitrack_id]['pos'][0:2]
+        # pos = (-pos[1], pos[0])
+        rot = self.optitrack.rigid_bodies[optitrack_id]['rot']
         rot_euler = _quat2eul(rot)
+        # print(f"Opti -- {robot_id} : {pos} -- {rot_euler}")
         return pos, rot_euler
 
     def _threadFunction(self):
@@ -109,10 +113,11 @@ class RIC_Demo:
             x = pos[0] # stream.data['estimation']['state']['x']
             y = pos[1] # stream.data['estimation']['state']['y']
             v = stream.data['estimation']['state']['v']
-            theta = rot[0] # stream.data['estimation']['state']['theta']
+            theta = stream.data['estimation']['state']['theta']
             theta_dot = stream.data['estimation']['state']['theta_dot']
             psi = rot[2] # stream.data['estimation']['state']['psi']
             psi_dot = stream.data['estimation']['state']['psi_dot']
+
 
             if robot.id in self.simulation.env.real_agents.keys():
                 self.simulation.setRealAgentConfiguration(agent_id=robot.id, x=x, y=y, theta=theta, psi=psi)
@@ -135,8 +140,10 @@ class RIC_Demo:
         if not robot.id.startswith('v'):
             self.simulation.addRealAgent(robot.id)
             self.consensus.addAgent(robot.id)
-            robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
-            time.sleep(0.5)
+            robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_OFF)
+            # robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
+            # robot.setInput([-0.05, -0.05])
+            # time.sleep(0.5)
             self.consensus.agents[robot.id].input_callback = self.ric_robot_manager.robotManager.robots[robot.id].setInput
 
     def _robotManagerRobotDisconnected_callback(self, robot, *args, **kwargs):
@@ -180,13 +187,23 @@ class RIC_Demo:
             return sample
 
     def _guiMessage_callback(self, message, *args, **kwargs):
-        print(message)
+        # print(message)
         if 'command' in message['data']:
-            if message['data']['command'] == 'consensus start':
+            if message['data']['command'] == 'cs':
                 self.run_consensus()
-            elif message['data']['command'].startswith('create virtual devices'):
-                num_devs = int(message['data']['command'].split(" ")[-1])
-                self.create_virtual_devices(num_devs, spawn_type='random')
+            elif message['data']['command'].startswith('vdevs'):
+                num_devs = int(message['data']['command'].split(" ")[-2])
+                spawn_type = str(message['data']['command'].split(" ")[-1])
+                self.create_virtual_devices(num_devs, spawn_type=spawn_type)
+            elif message['data']['command'].startswith('sinput'):
+                input_l = float(message['data']['command'].split(" ")[-2])
+                input_r = float(message['data']['command'].split(" ")[-1])
+                self.set_dummy_input([input_l, input_r])
+            elif message['data']['command'] == 'ss':
+                self.run_single_obs_avd()
+            elif message['data']['command'] == 'pos':
+                self.current_pos()
+
 
     def create_virtual_devices(self, num_devs, spawn_type='random'):
         for i in range(num_devs):
@@ -205,8 +222,33 @@ class RIC_Demo:
             time.sleep(0.5)
 
     def run_consensus(self):
-        self.consensus.formation(formation_type='circle', radius=1)
+        for robot in self.ric_robot_manager.robotManager.robots.values():
+            robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
+
+        # self.addVirtualAgent('vtwipr1')
+        # self.consensus.agents['vtwipr1'].state['x'] = 0.5
+        # self.consensus.agents['vtwipr1'].state['x'] = -1.0
+        # time.sleep(2)
         self.consensus.start()
+
+    def set_dummy_input(self, input):
+        print("Set dummy inputs to all devices")
+        for robot in self.ric_robot_manager.robotManager.robots.values():
+            robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
+        for agent in self.consensus.agents.values():
+            agent.setInput(input)
+
+    def run_single_obs_avd(self):
+        print("Avoid single obstacle")
+        for robot in self.ric_robot_manager.robotManager.robots.values():
+            robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
+        self.consensus._sThread.start()
+
+
+    def current_pos(self):
+        for agent_id in self.consensus.agents.keys():
+            pos, rot = self.opti_pos_rot(agent_id)
+            self.ric_robot_manager.gui.print(f"Pos of {agent_id} is {pos} -- {rot}")
 
 def main():
     ric_demo = RIC_Demo()

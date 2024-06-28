@@ -52,6 +52,7 @@ class RIC_Demo_Simulation:
                     'orientation': twiprToRotMat(agent.configuration['theta'].value, agent.configuration['psi'].value)
                 }
                 self.visualization.updateObject(id, data)
+                # print(agent.configuration['theta'].value, agent.configuration['psi'].value)
             time.sleep(0.05)
 
     def addVirtualAgent(self, id):

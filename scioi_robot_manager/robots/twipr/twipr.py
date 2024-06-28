@@ -57,6 +57,7 @@ class TWIPR:
         self.device.command(command='setControlMode', data={'mode': mode})
 
     def setInput(self, input, *args, **kwargs):
+        # print(f"Input command to {self.device.information.device_id} as {input}")
         self.device.command('setControlInput', data={'input': input})
 
     def setLEDs(self, color):

@@ -93,7 +93,7 @@ class Environment(scheduling.ScheduledObject):
         self.scheduling.actions['step']()
         self.scheduling.actions['exit']()
         time2 = time.time()
-        print((time2 - time1) * 1000)
+        # print((time2 - time1) * 1000)
 
     def _action_entry(self, *args, **kwargs):
         super()._action_entry()
