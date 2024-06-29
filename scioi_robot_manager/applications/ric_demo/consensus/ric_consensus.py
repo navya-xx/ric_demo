@@ -252,14 +252,13 @@ class ConsensusTWIPR:
 
             if check_flag:
                 val = 2 / U ** 3 * (p_dot.T @ r) ** 2 + 1 / U ** 2 * p_dot.T @ r_dot + 1 / U ** 2 * (
-                        K_v * (v_ref - v) * np.asarray([np.cos(psi), np.sin(psi)]) @ r + psi_dot_ref * v * np.asarray(
+                        K_v * (v_ref - v) * np.asarray([np.cos(psi), np.sin(psi)]) @ r + psi_dot * v * np.asarray(
                     [-np.sin(psi), np.cos(psi)]) @ r) + (d1 + d2) / U ** 2 * p_dot.T @ r + d1 * d2 * (
                               1 / U - delta_s ** 2)
                 if val < 0:
-                    lam = val / (K_v ** 2 / U ** 4 * (
-                            np.asarray([np.cos(psi), np.sin(psi)]) @ r) ** 2 + 0 * v ** 2 / U ** 4 * (
-                                         np.asarray([-np.sin(psi), np.cos(psi)]) @ r) ** 2)
-                    v_ref = v_ref - 1 / U ** 2 * K_v * lam * np.asarray([np.cos(psi), np.sin(psi)]) @ r
+                    lam = val / ((0 * K_v ** 2 / U ** 4 * (np.asarray([np.cos(psi), np.sin(psi)]) @ r) ** 2) +
+                                 v ** 2 / U ** 4 * (np.asarray([-np.sin(psi), np.cos(psi)]) @ r) ** 2)
+                    # v_ref = v_ref - 1 / U ** 2 * K_v * lam * np.asarray([np.cos(psi), np.sin(psi)]) @ r
                     psi_dot_ref = psi_dot_ref - 1 / U ** 2 * lam * v * np.asarray([-np.sin(psi), np.cos(psi)]) @ r
                     # TODO: check if psi control works for multiple agents
                     # temp_pos = np.array([[np.cos(psi), np.sin(psi)], [-np.sin(psi), np.cos(psi)]]) @ r
@@ -525,8 +524,8 @@ class Consensus:
                 # self.counter_centroid_comp += 1
                 self.centroid = np.array([0, 0])
                 for agent in self.agents.values():
-                    # obstacles = None  # {'obstacle1': np.array([0, 0])}
-                    obstacles = None  # self.listObstacles()
+                    obstacles = {'obstacle1': np.array([0, 0])}
+                    # obstacles = None  # self.listObstacles()
                     control_input = agent.pos_control_cbf(self.centroid, obstacles=obstacles, Ts=self.Ts).tolist()
                     print(f"Control input of {agent.id} is {control_input}")
                     print(f"Current pos of {agent.id} : {agent.state['x'], agent.state['y'], agent.state['v'], agent.state['psi'], agent.state['psi_dot'], agent.state['theta'], agent.state['theta_dot']}")
