@@ -42,7 +42,7 @@ class RIC_Demo:
         self.ric_robot_manager.registerCallback('new_robot', self._robotManagerNewRobot_callback)
         self.ric_robot_manager.registerCallback('robot_disconnected', self._robotManagerRobotDisconnected_callback)
 
-        self.consensus = Consensus()
+        self.consensus = Consensus(optitrack=self.optitrack)
 
         self.simulation = RIC_Demo_Simulation()
 
@@ -110,12 +110,13 @@ class RIC_Demo:
     def _robotManagerStream_callback(self, stream, robot, *args, **kwargs):
         if not robot.id.startswith('v'):
             pos, rot = self.opti_pos_rot(robot.id)
-            x = pos[0] # stream.data['estimation']['state']['x']
-            y = pos[1] # stream.data['estimation']['state']['y']
+            # print(stream.data['estimation']['state'])
+            x = pos[0]  # stream.data['estimation']['state']['x']
+            y = pos[1]  # stream.data['estimation']['state']['y']
             v = stream.data['estimation']['state']['v']
             theta = stream.data['estimation']['state']['theta']
             theta_dot = stream.data['estimation']['state']['theta_dot']
-            psi = rot[2] # stream.data['estimation']['state']['psi']
+            psi = rot[2]  # stream.data['estimation']['state']['psi']
             psi_dot = stream.data['estimation']['state']['psi_dot']
 
 
@@ -141,9 +142,6 @@ class RIC_Demo:
             self.simulation.addRealAgent(robot.id)
             self.consensus.addAgent(robot.id)
             robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_OFF)
-            # robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
-            # robot.setInput([-0.05, -0.05])
-            # time.sleep(0.5)
             self.consensus.agents[robot.id].input_callback = self.ric_robot_manager.robotManager.robots[robot.id].setInput
 
     def _robotManagerRobotDisconnected_callback(self, robot, *args, **kwargs):
@@ -235,6 +233,7 @@ class RIC_Demo:
         print("Set dummy inputs to all devices")
         for robot in self.ric_robot_manager.robotManager.robots.values():
             robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
+        time.sleep(1)
         for agent in self.consensus.agents.values():
             agent.setInput(input)
 
