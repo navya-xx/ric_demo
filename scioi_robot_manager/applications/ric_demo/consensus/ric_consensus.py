@@ -172,9 +172,9 @@ class ConsensusTWIPR:
     def pos_control_cbf(self, centroid, obstacles=None):
 
         Ts = 0.1
-        K_i = np.array([[0.0125, 0.006],
-                            [0.0125, -0.006]])
-        delta_s = 0.2
+        K_i = 2 * np.array([[0.0125, 0.006], [0.0125, -0.006]])
+        # K_i = np.array([[0.06, 0.00495], [0.06, -0.00495]])
+        delta_s = 0.5
 
         pos = np.array([self.state['x'], self.state['y']])
         pos_ref = centroid + np.array([self.formation_ref['x'], self.formation_ref['y']])
@@ -184,7 +184,7 @@ class ConsensusTWIPR:
             # return np.array([0.0, 0.0])
 
         psi =  _wrap2Pi(self.state['psi']) #self.state['psi']  #
-        v_g = 0.2 * ( pos_ref - np.asarray(pos) )
+        v_g = pos_ref - np.asarray(pos)
 
         temp_pos = np.array([[np.cos(psi), np.sin(psi)], [-np.sin(psi), np.cos(psi)]]) @ v_g.T
         theta = np.atan2(temp_pos[1], temp_pos[0]) + psi
@@ -194,9 +194,9 @@ class ConsensusTWIPR:
         if np.cos(theta - psi) < 0:
             u = -1
 
-        v_ref = (np.linalg.norm(v_g) * np.cos(theta - psi))
+        v_ref = 0.3 * (np.linalg.norm(v_g) * np.cos(theta - psi))
         # v_ref = np.clip(v_ref, -0.1, 0.1)
-        psi_dot_ref = (0.2 * np.sin(theta - psi) * u)
+        psi_dot_ref = (0.8 * np.sin(theta - psi) * u)
 
         v = self.state['v']
         psi_dot = self.state['psi_dot']
@@ -226,16 +226,34 @@ class ConsensusTWIPR:
                 r_dot = r_dot + 2 * p_dot * ((pos - obs).T @ (pos - obs)) / ((pos - obs).T @ (pos - obs)) ** 3 - 8 * (
                         pos - obs) * (p_dot.T @ (pos - obs)) / ((pos - obs).T @ (pos - obs)) ** 3
 
+            f = np.array([[0, -1], [1, 0]]) @ r
+            f_i = np.array([[0, 1], [-1, 0]]) @ r
+            if np.inner(v_g, f) > 0:
+                s = 0.2 * f
+            else:
+                s = 0.2 * f_i
+
+            temp_pos = np.array([[np.cos(psi), np.sin(psi)], [-np.sin(psi), np.cos(psi)]]) @ (v_g + s).T
+            theta = np.atan2(temp_pos[1], temp_pos[0]) + psi
+
+            u = 1
+            if np.cos(theta - psi) < 0:
+                u = -1
+
+            v_ref = 0.3 * (np.linalg.norm(v_g + s) * np.cos(theta - psi))
+            # v_ref = np.clip(v_ref, -0.1, 0.1)
+            psi_dot_ref = (0.8 * np.sin(theta - psi) * u)
+
             val = 2 / U ** 3 * (p_dot.T @ r) ** 2 + 1 / U ** 2 * p_dot.T @ r_dot + 1 / U ** 2 * (
-                    K_v * (v_ref - v) * np.asarray([np.cos(psi), np.sin(psi)]) @ r + psi_dot_ref * v * np.asarray(
+                    K_v * (v_ref - v) * np.asarray([np.cos(psi), np.sin(psi)]) @ r + 0 * psi_dot_ref * v * np.asarray(
                 [-np.sin(psi), np.cos(psi)]) @ r) + (d1 + d2) / U ** 2 * p_dot.T @ r + d1 * d2 * (
                           1 / U - delta_s ** 2)
             if val < 0:
                 lam = val / (K_v ** 2 / U ** 4 * (
-                            np.asarray([np.cos(psi), np.sin(psi)]) @ r) ** 2 + v ** 2 / U ** 4 * (
+                            np.asarray([np.cos(psi), np.sin(psi)]) @ r) ** 2 + 0 * v ** 2 / U ** 4 * (
                                      np.asarray([-np.sin(psi), np.cos(psi)]) @ r) ** 2)
                 v_ref = v_ref - 1 / U ** 2 * K_v * lam * np.asarray([np.cos(psi), np.sin(psi)]) @ r
-                psi_dot_ref = psi_dot_ref - 1 / U ** 2 * lam * v * np.asarray([-np.sin(psi), np.cos(psi)]) @ r
+                # psi_dot_ref = psi_dot_ref - 1 / U ** 2 * lam * v * np.asarray([-np.sin(psi), np.cos(psi)]) @ r
                 # TODO: check if psi control works for multiple agents
                 # temp_pos = np.array([[np.cos(psi), np.sin(psi)], [-np.sin(psi), np.cos(psi)]]) @ r
                 # alpha = np.atan2(temp_pos[1], temp_pos[0]) + psi + np.pi / 2
@@ -243,12 +261,12 @@ class ConsensusTWIPR:
                 # psi_ref = alpha + (theta - alpha) * np.exp(-0.5 * r.T @ r)
                 # psi_dot_ref = 0.8 * np.sin(psi_ref - psi) * u  # 0.8 * np.sin(psi_ref - psi) * u
 
-        if np.abs(v_ref - v) > 0.02:
+        if np.abs(v_ref - v) > 0.05:
             self.state['v_integral'] += (v_ref - v) * Ts
             self.state['psi_dot_integral'] += (psi_dot_ref - psi_dot) * Ts
         control_input = - K_i @ np.array([self.state['v_integral'], self.state['psi_dot_integral']]).T
         # clip
-        control_input = np.clip(control_input, -0.05, 0.05)
+        # control_input = np.clip(control_input, -0.05, 0.05)
 
         return control_input
 
@@ -441,7 +459,7 @@ class Consensus:
         # self.formation(formation_type='circle', idx=idx, radius=1, length=2.0)
         # self.add_agents_as_obstacles()
         # self.agents['twipr1'].formation_ref = {'x': self.agents['twipr1'].state['x'] - 0.5, 'y': self.agents['twipr1'].state['y'] + 0.5}
-        self.agents['twipr1'].formation_ref = {'x': -0.6685745120048523, 'y': -0.3451452851295471}
+        self.agents['twipr4'].formation_ref = {'x': -0.6685745120048523, 'y': -0.3451452851295471}
         # self.agents['twipr2'].formation_ref = {'x': -0.5, 'y': self.agents['twipr2'].state['y']}
         # self.agents['twipr3'].formation_ref = {'x': -0.5, 'y': self.agents['twipr3'].state['y']}
         # self.agents['twipr4'].formation_ref = {'x': -0.5, 'y': self.agents['twipr4'].state['y']}
@@ -501,7 +519,7 @@ class Consensus:
                     # centroid = self.calcCentroid()
                     centroid = np.array([0, 0])
                     self.add_static_obstacle('obstacle1', {'x': 0, 'y': 0})
-                    obstacles = {'obstacle1': self.obstacles['obstacle1']}  # self.listObstacles()
+                    obstacles = None  # {'obstacle1': self.obstacles['obstacle1']}  # self.listObstacles()
                     control_input = agent.pos_control_cbf(centroid, obstacles).tolist()
                     print(f"Control input of {agent.id} is {control_input}")
                     print(f"Current pos of {agent.id} : {agent.state['x'], agent.state['y']}")
