@@ -44,10 +44,10 @@
 	export let ranges = [
 		[null, null],
 		[-1, 1],
-		[-1, 1],
+		[-10, 10],
 		[0, 360],
 		[-1, 1],
-		[-1.57, 1.57]
+		[0, 360]
 	];
 
 	function onResize(entry: ResizeObserverEntry) {
