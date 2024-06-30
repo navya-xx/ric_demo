@@ -52,7 +52,7 @@ class TWIPR:
     def stop(self):
         ...
 
-    def setControlMode(self, mode):
+    def setControlMode(self, mode, *args, **kwargs):
         print(f"Set control mode to {mode}")
         self.device.command(command='setControlMode', data={'mode': mode})
 

@@ -42,11 +42,12 @@ class RIC_Demo:
         self.ric_robot_manager.registerCallback('new_robot', self._robotManagerNewRobot_callback)
         self.ric_robot_manager.registerCallback('robot_disconnected', self._robotManagerRobotDisconnected_callback)
 
-        self.consensus = Consensus(optitrack=self.optitrack)
+        self.Ts = 0.02
+        self.consensus = Consensus(optitrack=self.optitrack, gui=self.ric_robot_manager.gui, Ts=self.Ts)
 
         self.simulation = RIC_Demo_Simulation()
 
-        self._virtualRobotStreamTimer = Timer()
+        # self._virtualRobotStreamTimer = Timer()
 
         self.ric_robot_manager.gui.registerCallback('rx_message', self._guiMessage_callback)
 
@@ -82,35 +83,36 @@ class RIC_Demo:
         return pos, rot_euler
 
     def _threadFunction(self):
-        self._virtualRobotStreamTimer.start()
+        # self._virtualRobotStreamTimer.start()
 
         while True:
-            if self._virtualRobotStreamTimer > 0.1:
-                self._virtualRobotStreamTimer.reset()
+            # if self._virtualRobotStreamTimer > 0.02:
+            #     self._virtualRobotStreamTimer.reset()
 
-                for robot_id, agent in self.simulation.env.virtual_agents.items():
-                    sample = self.buildSampleFromSimulation(robot_id)
-                    if robot_id in self.ric_robot_manager.robotManager.robots.keys():
-                        self.ric_robot_manager.robotManager.robots[robot_id].device.dummyStream(sample)
+            current_virtual_agents = self.simulation.env.virtual_agents.copy()
+            for robot_id, agent in current_virtual_agents.items():
+                sample = self.buildSampleFromSimulation(robot_id)
+                if robot_id in self.ric_robot_manager.robotManager.robots.keys():
+                    self.ric_robot_manager.robotManager.robots[robot_id].device.dummyStream(sample)
 
-                        # Update the corresponding TWIPR object in the consensus
-                        if robot_id in self.consensus.agents.keys():
-                            agent = self.consensus.agents[robot_id]
-                            agent.last_data_timestamp = time.time()
-                            agent.state['x'] = sample['estimation']['state']['x']
-                            agent.state['y'] = sample['estimation']['state']['y']
-                            agent.state['v'] = sample['estimation']['state']['v']
-                            agent.state['theta'] = sample['estimation']['state']['theta']
-                            agent.state['theta_dot'] = sample['estimation']['state']['theta_dot']
-                            agent.state['psi'] = sample['estimation']['state']['psi']
-                            agent.state['psi_dot'] = sample['estimation']['state']['psi_dot']
+                    # Update the corresponding TWIPR object in the consensus
+                    if robot_id in self.consensus.agents.keys():
+                        agent = self.consensus.agents[robot_id]
+                        agent.last_data_timestamp = time.time()
+                        agent.state['x'] = sample['estimation']['state']['x']
+                        agent.state['y'] = sample['estimation']['state']['y']
+                        agent.state['v'] = sample['estimation']['state']['v']
+                        agent.state['theta'] = sample['estimation']['state']['theta']
+                        agent.state['theta_dot'] = sample['estimation']['state']['theta_dot']
+                        agent.state['psi'] = sample['estimation']['state']['psi']
+                        agent.state['psi_dot'] = sample['estimation']['state']['psi_dot']
 
-            time.sleep(0.1)
+            time.sleep(self.Ts)
 
     def _robotManagerStream_callback(self, stream, robot, *args, **kwargs):
         if not robot.id.startswith('v'):
             pos, rot = self.opti_pos_rot(robot.id)
-            # print(stream.data['estimation']['state'])
+            # print(f"Stream data for {robot.id} -- {stream.data['estimation']['state']}")
             x = pos[0]  # stream.data['estimation']['state']['x']
             y = pos[1]  # stream.data['estimation']['state']['y']
             v = stream.data['estimation']['state']['v']
@@ -142,7 +144,9 @@ class RIC_Demo:
             self.simulation.addRealAgent(robot.id)
             self.consensus.addAgent(robot.id)
             robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_OFF)
+            self.consensus.agents[robot.id].control_mode = TWIPR_Control_Mode.TWIPR_CONTROL_MODE_OFF
             self.consensus.agents[robot.id].input_callback = self.ric_robot_manager.robotManager.robots[robot.id].setInput
+            self.consensus.agents[robot.id].set_control_mode_callback = self.ric_robot_manager.robotManager.robots[robot.id].setControlMode
 
     def _robotManagerRobotDisconnected_callback(self, robot, *args, **kwargs):
         print(f"RIC DEMO: ROBOT DISCONNECTED: {robot.id}")
@@ -162,11 +166,11 @@ class RIC_Demo:
                 return
 
         self.simulation.addVirtualAgent(agent_id)
-        time.sleep(0.5)
         self.consensus.addAgent(agent_id)
         virtual_robot_device = DummyDevice(id=agent_id)
         self.consensus.agents[agent_id].input_callback = self.simulation.setVirtualAgentInput
         self.ric_robot_manager.robotManager.deviceManager._deviceRegistered_callback(virtual_robot_device)
+        time.sleep(2)
 
     def buildSampleFromSimulation(self, robot_id):
         if robot_id in self.simulation.env.virtual_agents.keys():
@@ -201,6 +205,10 @@ class RIC_Demo:
                 self.run_single_obs_avd()
             elif message['data']['command'] == 'pos':
                 self.current_pos()
+            elif message['data']['command'] == 'tf start':
+                self.consensus.trajectory_follow = True
+            elif message['data']['command'] == 'tf stop':
+                self.consensus.trajectory_follow = False
 
 
     def create_virtual_devices(self, num_devs, spawn_type='random'):
@@ -222,6 +230,7 @@ class RIC_Demo:
     def run_consensus(self):
         for robot in self.ric_robot_manager.robotManager.robots.values():
             robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
+            self.consensus.agents[robot.id].control_mode = TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING
 
         # self.addVirtualAgent('vtwipr1')
         # self.consensus.agents['vtwipr1'].state['x'] = 0.5

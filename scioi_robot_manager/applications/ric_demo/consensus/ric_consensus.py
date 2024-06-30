@@ -4,6 +4,8 @@ from scipy.spatial.transform import Rotation
 import numpy as np
 from scipy.optimize import minimize
 from applications.ric_demo import settings
+from applications.ideenexpo.src.ideenexpo_gui import IdeenExpoGUI
+from applications.ric_demo.simulation.src.twipr_data import TWIPR_Control_Mode
 
 max_forward_torque_cmd = 0.01
 max_turning_torque_cmd = 0.03
@@ -88,20 +90,30 @@ class ConsensusTWIPR:
     formation_ref: dict
     is_consensus: bool
     input_callback: callable
+    set_control_mode_callback: callable
     last_data_timestamp: float
+    control_mode: int
 
     def __init__(self, id):
         self.input_callback = None
+        self.set_control_mode_callback = None
+        self.get_control_mode_callback = None
         self.id = id
         self.formation_ref = {'x': 0, 'y': 0, 'psi': 0}
         self.is_consensus = False
-        self.consensus_tol = 0.02
+        self.consensus_tol = 0.1
         self.last_data_timestamp = 0
         self.state = {'v_integral': 0, 'psi_dot_integral': 0}
+        self.control_mode = 0
 
     def setInput(self, input):
         if self.input_callback is not None:
             self.input_callback(input, self.id)
+
+    def setControlMode(self, mode):
+        if self.set_control_mode_callback is not None:
+            self.set_control_mode_callback(mode, self.id)
+            self.control_mode = mode
 
     def resetIntegrator(self):
         self.state['v_integral'] = 0
@@ -174,12 +186,12 @@ class ConsensusTWIPR:
 
         K_i = 2 * np.array([[0.0125, 0.006], [0.0125, -0.006]])
         # K_i = np.array([[0.06, 0.00495], [0.06, -0.00495]])
-        delta_s = 0.5
+        delta_s = 0.4
 
         pos = np.array([self.state['x'], self.state['y']])
         pos_ref = centroid + np.array([self.formation_ref['x'], self.formation_ref['y']])
         if np.linalg.norm(pos - pos_ref) <= self.consensus_tol:
-            print(f"Consensus is reached for agent {self.id}")
+            # print(f"Consensus is reached for agent {self.id}")
             self.is_consensus = True
             # return np.array([0.0, 0.0])
 
@@ -205,14 +217,13 @@ class ConsensusTWIPR:
         # if np.sign(v_ref) != np.sign(v) and np.abs(v_ref - v) > 0.1:
         #    v_ref = 0
         ##
-
         if obstacles is not None:
 
             ## Collision Avoidance ##
             # TODO: check if CA parameters are suited for MA case
             pos = np.asarray(pos).T
             p_dot = v * np.array([np.cos(psi), np.sin(psi)]).T
-            K_v = 1 / 3
+            K_v = 1 / 20
             d1 = 1 / 4
             d2 = 1 / 4
             U = 0
@@ -256,9 +267,9 @@ class ConsensusTWIPR:
                     [-np.sin(psi), np.cos(psi)]) @ r) + (d1 + d2) / U ** 2 * p_dot.T @ r + d1 * d2 * (
                               1 / U - delta_s ** 2)
                 if val < 0:
-                    lam = val / ((0 * K_v ** 2 / U ** 4 * (np.asarray([np.cos(psi), np.sin(psi)]) @ r) ** 2) +
+                    lam = val / ((K_v ** 2 / U ** 4 * (np.asarray([np.cos(psi), np.sin(psi)]) @ r) ** 2) +
                                  v ** 2 / U ** 4 * (np.asarray([-np.sin(psi), np.cos(psi)]) @ r) ** 2)
-                    # v_ref = v_ref - 1 / U ** 2 * K_v * lam * np.asarray([np.cos(psi), np.sin(psi)]) @ r
+                    v_ref = v_ref - 1 / U ** 2 * K_v * lam * np.asarray([np.cos(psi), np.sin(psi)]) @ r
                     psi_dot_ref = psi_dot_ref - 1 / U ** 2 * lam * v * np.asarray([-np.sin(psi), np.cos(psi)]) @ r
                     # TODO: check if psi control works for multiple agents
                     # temp_pos = np.array([[np.cos(psi), np.sin(psi)], [-np.sin(psi), np.cos(psi)]]) @ r
@@ -269,13 +280,16 @@ class ConsensusTWIPR:
 
                 # print(f"Norm dist from obs {np.linalg.norm(pos - obstacles['obstacle1'])}")
 
-        if np.abs(v_ref - v) > 0.02:
+        if np.abs(v_ref - v) > 0.01:
             self.state['v_integral'] += (v_ref - v) * Ts
             self.state['psi_dot_integral'] += (psi_dot_ref - psi_dot) * Ts
+        else:
+            self.resetIntegrator()
+
         control_input = - K_i @ np.array([self.state['v_integral'], self.state['psi_dot_integral']]).T
         # clip
         # control_input = np.clip(control_input, -0.05, 0.05)
-        print(f"abs(V_ref - v) of {self.id} = {np.abs(v_ref - v)}")
+        # print(f"abs(V_ref - v) of {self.id} = {np.abs(v_ref - v)}")
         return control_input
 
     def pos_control_opt(self, centroid, obstacles=None):
@@ -374,15 +388,16 @@ class ConsensusTWIPR:
         else:
             self.setInput([0, 0])
         psi_diff = (self.state['psi'] - self.formation_ref['psi']) % (2 * np.pi)
-        return (psi_diff <= 0.1)
+        return psi_diff <= 0.1
 
 class Consensus:
     agents: dict[str, ConsensusTWIPR]
     obstacles: dict[str, Obstacle]
     reach_consensus: bool
     thread: threading.Thread
+    gui: IdeenExpoGUI
 
-    def __init__(self, agents=None, optitrack=None, formation_type=None, formation_radius=None, formation_length=None):
+    def __init__(self, agents=None, optitrack=None, gui=None, formation_type=None, formation_radius=None, formation_spacing=None, *args, **kwargs):
         if agents is not None:
             self.agents = agents
         else:
@@ -395,25 +410,37 @@ class Consensus:
         self.reach_consensus = False
 
         self.optitrack = optitrack
+        self.gui = gui
 
-        self.Ts = 0.02
+        if 'Ts' in kwargs.keys():
+            self.Ts = kwargs['Ts']
+        else:
+            self.Ts = 0.05  # Sampling time for consensus
 
-        self.is_formation_control = False
+        if 'boundary' in kwargs.keys():
+            self.boundary = kwargs['boundary']
+        else:
+            self.boundary = 2.0
+
+        self.is_formation_control = True
         if formation_type is None:
-            self.formation_type = 'circle'
+            self.formation_type = 'line'
         else:
             self.formation_type = formation_type
         if formation_radius is None:
             self.formation_radius = 0.5
         else:
             self.formation_radius = formation_radius
-        if formation_length is None:
-            self.formation_length = 1
+        if formation_spacing is None:
+            self.formation_spacing = 1.0
         else:
-            self.formation_length = formation_length
+            self.formation_spacing = formation_spacing
 
         self.counter_centroid_comp = 0
         self.comp_centroid_every = 100
+        # self.circular_trajectory_counter = 0
+
+        self.trajectory_follow = False
 
     def init(self):
         ...
@@ -466,6 +493,23 @@ class Consensus:
         # print(f"Opti -- {robot_id} : {pos} -- {rot_euler}")
         return pos, rot_euler
 
+    def update_trajectory(self, ang_speed=0.1):
+
+        def cart_to_pol(x, y):
+            rho = np.sqrt(x**2 + y**2)
+            phi = np.arctan2(y, x)
+            return (rho, phi)
+
+        for agent in self.agents.values():
+            print(f"\n Old position of {agent.id} in polar: {cart_to_pol(agent.formation_ref['x'], agent.formation_ref['y'])}")
+            angle = ang_speed
+            x, y, psi = agent.formation_ref['x'], agent.formation_ref['y'], agent.formation_ref['psi']
+            agent.formation_ref['x'] = x * np.cos(angle) - y * np.sin(angle)
+            agent.formation_ref['y'] = x * np.sin(angle) + y * np.cos(angle)
+            agent.formation_ref['psi'] = psi + angle
+            print(f"New position of {agent.id} in polar: {cart_to_pol(agent.formation_ref['x'], agent.formation_ref['y'])} \n")
+
+
     def formation(self, formation_type='circle', idx=0, *args, **kwargs):
         num_of_agents = len(self.agents)
         # print(num_of_agents)
@@ -481,32 +525,51 @@ class Consensus:
                 idx += 1
                 idx = idx % num_of_agents
         elif formation_type == 'line':
-            length = kwargs['length']
-            if (num_of_agents > 1):
-                space = length / (num_of_agents - 1)
-            else:
-                space = 0
+            spacing = kwargs['spacing']
+            length = (num_of_agents - 1) * spacing
+            if num_of_agents == 1:
+                spacing = 0
+            pos_list = []
+            for i in range(num_of_agents):
+                pos_list.append(- length / 2 + spacing * i)
+
+            # Real robots are close to center
+            pos_list_id = np.argsort(np.abs(pos_list))
+            pos_list = np.array(pos_list)[pos_list_id]
             idx = 0
-            for agent in self.agents.values():
-                agent.formation_ref['x'] = - length / 2 + space * idx
+            for agent_id, agent in self.agents.items():
+                if agent_id.startswith('twipr'):
+                    agent.formation_ref['x'] = pos_list[idx]
+                    idx += 1
                 agent.formation_ref['y'] = 0
-                idx += 1
+                agent.formation_ref['psi'] = np.pi/2
+            for agent_id, agent in self.agents.items():
+                if not agent_id.startswith('twipr'):
+                    agent.formation_ref['x'] = pos_list[idx]
+                    idx += 1
 
     def _threadFunc(self):
         # time.sleep(5)
         if self.is_formation_control:
-            idx = 0
-            self.formation(formation_type=self.formation_type, idx=idx, radius=self.formation_radius, length=self.formation_length)
+            idx = 1
+            self.formation(formation_type=self.formation_type, idx=idx, radius=self.formation_radius, spacing=self.formation_spacing)
             # self.add_agents_as_obstacles()
         else:
             if 'twipr1' in self.agents:
-                self.agents['twipr1'].formation_ref = {'x': 0.87483793497085574, 'y': -0.4327182471752167}
+                self.agents['twipr1'].formation_ref = {'x': -0.7390239238739014, 'y': 0.9398990869522095, 'psi': 0}
+                # self.agents['twipr1'].formation_ref = {'x': 0.87483793497085574, 'y': -0.4327182471752167, 'psi': 0}
             if 'twipr2' in self.agents:
-                self.agents['twipr2'].formation_ref = {'x': -0.6782307624816895, 'y': -0.3796898126602173}
+                self.agents['twipr2'].formation_ref = {'x': -0.6782307624816895, 'y': -0.3796898126602173, 'psi': 0}
             if 'twipr3' in self.agents:
-                self.agents['twipr3'].formation_ref = {'x': -0.7390239238739014, 'y': 0.9398990869522095}
+                self.agents['twipr3'].formation_ref = {'x': -0.7390239238739014, 'y': 0.9398990869522095, 'psi': 0}
             if 'twipr4' in self.agents:
-                self.agents['twipr4'].formation_ref = {'x': -0.6313509941101074, 'y': -1.239223837852478}
+                self.agents['twipr4'].formation_ref = {'x': -0.6313509941101074, 'y': -1.239223837852478, 'psi': 0}
+
+        self.gui.print("Starting Consensus")
+
+        trajectory_counter = 0
+        print_trajectory = True
+        print_consensus = True
 
         while True:
             # add position information from optitrack
@@ -518,26 +581,55 @@ class Consensus:
                         self.agents[agent_id].state['y'] = pos[1]
                         self.agents[agent_id].state['psi'] = rot[2]
 
+                        if np.linalg.norm(pos) > self.boundary and self.agents[agent_id].control_mode == TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING:
+                            print(f"Turning {agent_id} control mode off -- outside boundary at dist {np.linalg.norm(pos)}")
+                            # self.agents[agent_id].setControlMode(TWIPR_Control_Mode.TWIPR_CONTROL_MODE_OFF)
+                            # set centroid to 0,0
+                            self.centroid = [0, 0]
+
+
+            # add position information for virtual devices
+
             all_agents_reach_consensus = True
             if not self.reach_consensus:
-                # self.calcCentroid()
+                if self.trajectory_follow:
+                    if print_trajectory:
+                        self.gui.print("Starting trajectory following in formation")
+                        print_trajectory = False
+                    if trajectory_counter == 10:
+                        # update trajectory after every 100 runs of consensus
+                        self.update_trajectory(ang_speed=0.05)
+                        # self.circular_trajectory_counter += 1
+                        trajectory_counter = 0
+                    trajectory_counter += 1
+                    # trajectory_follow = False
+                    # print_consensus = True
+                    # print_consensus = True
+                else:
+                    # self.calcCentroid()
+                    self.centroid = np.array([0, 0])
+
                 # self.counter_centroid_comp += 1
-                self.centroid = np.array([0, 0])
+                # self.centroid = np.array([0, 0])
                 for agent in self.agents.values():
-                    obstacles = {'obstacle1': np.array([0, 0])}
-                    # obstacles = None  # self.listObstacles()
+                    # obstacles = {'obstacle1': np.array([0, 0])}
+                    obstacles = None #self.listObstacles()
                     control_input = agent.pos_control_cbf(self.centroid, obstacles=obstacles, Ts=self.Ts).tolist()
-                    print(f"Control input of {agent.id} is {control_input}")
-                    print(f"Current pos of {agent.id} : {agent.state['x'], agent.state['y'], agent.state['v'], agent.state['psi'], agent.state['psi_dot'], agent.state['theta'], agent.state['theta_dot']}")
-                    print(f"Ref pos of {agent.id} : {agent.formation_ref['x'], agent.formation_ref['y']}")
+                    # print(f"Control input of {agent.id} is {control_input}")
+                    # print(f"Current pos of {agent.id} : {agent.state['x'], agent.state['y'], agent.state['v'], agent.state['psi'], agent.state['psi_dot'], agent.state['theta'], agent.state['theta_dot']}")
+                    # print(f"Ref pos of {agent.id} : {agent.formation_ref['x'], agent.formation_ref['y']}")
                     agent.setInput(control_input)
 
-                    if not agent.is_consensus and all_agents_reach_consensus == True:
+                    if not agent.is_consensus and all_agents_reach_consensus:
                         all_agents_reach_consensus = False
 
             if all_agents_reach_consensus:
+                if print_consensus:
+                    self.gui.print("All agents reached consensus!")
+                    print_consensus = False
+
                 self.reach_consensus = False
-                print("All agents reached consensus!")
+
                 # for agent in self.agents.values():
                 #     agent.setInput([0.0, 0.0])
 
@@ -548,7 +640,10 @@ class Consensus:
                 #         tmp = agent.psi_control()
                 #         if psi_control_complete and not tmp:
                 #             psi_control_complete = False
-                #     time.sleep(0.1)
+                #     time.sleep(0.01)
+
+                # if psi_control_complete:
+                # trajectory_follow = True
 
                 # time.sleep(2)
                 # idx = (idx + 1) % len(self.agents)

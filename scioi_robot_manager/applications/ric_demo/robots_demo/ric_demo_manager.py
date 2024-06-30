@@ -10,8 +10,8 @@ from extensions.joystick.joystick_manager import Joystick, JoystickManager
 logger = logging.getLogger('RIC')
 logger.setLevel('INFO')
 
-torque_turn_max_cmd = 0.06
-torque_forward_max_cmd = 0.06
+torque_turn_max_cmd = 0.04  #0.06
+torque_forward_max_cmd = 0.04  #0.06
 
 
 class RIC_Demo_RobotManager:
@@ -178,6 +178,7 @@ class RIC_Demo_RobotManager:
     def _setControlModeAll(self, mode):
         for robot in self.robotManager.robots.values():
             robot.setControlMode(mode)
+
 
     # ------------------------------------------------------------------------------------------------------------------
     def _robotStream_callback(self, stream, robot, *args, **kwargs):
