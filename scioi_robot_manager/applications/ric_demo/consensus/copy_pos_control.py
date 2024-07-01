@@ -5,7 +5,7 @@ def pos_control_cbf(self, centroid, obstacles=None, Ts=0.1):
 
     pos = np.array([self.state['x'], self.state['y']])
     pos_ref = centroid + np.array([self.formation_ref['x'], self.formation_ref['y']])
-    if np.linalg.norm(pos - pos_ref) <= self.consensus_tol:
+    if np.linalg.norm(pos - pos_ref) <= self.consensus_normalized_tol:
         print(f"Consensus is reached for agent {self.id}")
         self.is_consensus = True
         # return np.array([0.0, 0.0])
@@ -114,7 +114,7 @@ def pos_control_cbf(self, centroid, obstacles=None, Ts=0.1):
 
     pos = np.array([self.state['x'], self.state['y']])
     pos_ref = centroid + np.array([self.formation_ref['x'], self.formation_ref['y']])
-    if np.linalg.norm(pos - pos_ref) <= self.consensus_tol:
+    if np.linalg.norm(pos - pos_ref) <= self.consensus_normalized_tol:
         # print(f"Consensus is reached for agent {self.id}")
         self.is_consensus = True
         # return np.array([0.0, 0.0])

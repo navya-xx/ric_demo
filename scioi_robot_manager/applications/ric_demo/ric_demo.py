@@ -42,7 +42,7 @@ class RIC_Demo:
         self.ric_robot_manager.registerCallback('new_robot', self._robotManagerNewRobot_callback)
         self.ric_robot_manager.registerCallback('robot_disconnected', self._robotManagerRobotDisconnected_callback)
 
-        self.Ts = 0.02
+        self.Ts = 0.01
         self.consensus = Consensus(optitrack=self.optitrack, gui=self.ric_robot_manager.gui, Ts=self.Ts)
 
         self.simulation = RIC_Demo_Simulation()
@@ -66,7 +66,7 @@ class RIC_Demo:
 
         while not self.simulation.visualization.loaded:
             time.sleep(0.1)
-        self.simulation.visualization.addObject('floor1', 'floor', {'tile_size': 0.4, 'tiles_x': 10, 'tiles_y': 10})
+        self.simulation.visualization.addObject('floor1', 'floor', {'tile_size': 0.5, 'tiles_x': 20, 'tiles_y': 20})
 
         time.sleep(5)
 
@@ -191,24 +191,36 @@ class RIC_Demo:
     def _guiMessage_callback(self, message, *args, **kwargs):
         # print(message)
         if 'command' in message['data']:
-            if message['data']['command'] == 'cs':
+            if message['data']['command'].startswith('cs'):
+                tmp = message['data']['command'].split("_")
+                if len(tmp) > 1:
+                    self.consensus.formation_type = tmp[1]
+                if len(tmp) > 2:
+                    if tmp[1] == 'circle':
+                        self.consensus.formation_radius = float(tmp[2])
+                    elif tmp[1] == 'line':
+                        self.consensus.formation_spacing = float(tmp[2])
                 self.run_consensus()
+            elif message['data']['command'].startswith('stop'):
+                self.stop_consensus()
             elif message['data']['command'].startswith('vdevs'):
-                num_devs = int(message['data']['command'].split(" ")[-2])
-                spawn_type = str(message['data']['command'].split(" ")[-1])
+                num_devs = int(message['data']['command'].split("_")[-2])
+                spawn_type = str(message['data']['command'].split("_")[-1])
                 self.create_virtual_devices(num_devs, spawn_type=spawn_type)
             elif message['data']['command'].startswith('sinput'):
-                input_l = float(message['data']['command'].split(" ")[-2])
-                input_r = float(message['data']['command'].split(" ")[-1])
+                input_l = float(message['data']['command'].split("_")[-2])
+                input_r = float(message['data']['command'].split("_")[-1])
                 self.set_dummy_input([input_l, input_r])
             elif message['data']['command'] == 'ss':
                 self.run_single_obs_avd()
             elif message['data']['command'] == 'pos':
                 self.current_pos()
-            elif message['data']['command'] == 'tf start':
+            elif message['data']['command'] == 'tf':
                 self.consensus.trajectory_follow = True
-            elif message['data']['command'] == 'tf stop':
+                self.ric_robot_manager.gui.print("Starting Trajectory following")
+            elif message['data']['command'] == 'tfs':
                 self.consensus.trajectory_follow = False
+                self.ric_robot_manager.gui.print("Stopping Trajectory following")
 
 
     def create_virtual_devices(self, num_devs, spawn_type='random'):
@@ -237,6 +249,9 @@ class RIC_Demo:
         # self.consensus.agents['vtwipr1'].state['x'] = -1.0
         # time.sleep(2)
         self.consensus.start()
+
+    def stop_consensus(self):
+        self.consensus.stop()
 
     def set_dummy_input(self, input):
         print("Set dummy inputs to all devices")

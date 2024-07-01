@@ -5,8 +5,8 @@ import time
 
 from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.utils.orientations import twiprToRotMat
 from applications.ric_demo.simulation.src.ric_demo_environment import Environment_RIC
-from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.visualization.babylon_new.babylon import \
-    BabylonVisualization
+from applications.ric_demo.simulation.scioi_pysim.scioi_py_core.visualization.babylon_new.babylon import BabylonVisualization
+from applications.ric_demo import settings
 
 
 class RIC_Demo_Simulation:
@@ -60,7 +60,8 @@ class RIC_Demo_Simulation:
         self.env.addVirtualAgent(id)
 
     def addRealAgent(self, id):
-        self.visualization.addObject(id, 'twipr', {'color': [1, 0, 0]})
+        color = settings.agents[id]['color']
+        self.visualization.addObject(id, 'twipr', {'color': color})
         self.env.addRealAgent(id)
 
     def removeVirtualAgent(self, id):
