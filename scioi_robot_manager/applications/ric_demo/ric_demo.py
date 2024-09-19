@@ -31,7 +31,6 @@ class RIC_Demo:
     _virtualRobotStreamTimer: Timer
 
     _thread: threading.Thread
-
     def __init__(self):
 
         self.optitrack = OptiClient("127.0.0.1", "127.0.0.1", True, 0)
@@ -42,7 +41,7 @@ class RIC_Demo:
         self.ric_robot_manager.registerCallback('new_robot', self._robotManagerNewRobot_callback)
         self.ric_robot_manager.registerCallback('robot_disconnected', self._robotManagerRobotDisconnected_callback)
 
-        self.Ts = 0.01
+        self.Ts = 0.1
         self.consensus = Consensus(optitrack=self.optitrack, gui=self.ric_robot_manager.gui, Ts=self.Ts)
 
         self.simulation = RIC_Demo_Simulation()
@@ -52,6 +51,16 @@ class RIC_Demo:
         self.ric_robot_manager.gui.registerCallback('rx_message', self._guiMessage_callback)
 
         self._thread = threading.Thread(target=self._threadFunction)
+
+        self.agent_info = {}
+
+        # TODO: REMOVE after experiments are finished
+        self.X = []
+        self.Y = []
+        self.PSI = []
+        self.V = []
+        self.PSI_DOT = []
+
 
     def init(self):
         self.ric_robot_manager.init()
@@ -82,10 +91,29 @@ class RIC_Demo:
         # print(f"Opti -- {robot_id} : {pos} -- {rot_euler}")
         return pos, rot_euler
 
+    def getAllAgentsInfo(self):
+        for robot_id in self.ric_robot_manager.robotManager.robots.keys():
+            [pos, rot] = self.opti_pos_rot(robot_id)
+            self.agent_info[robot_id] = {'pos': pos, 'rot': rot.tolist()}
+
     def _threadFunction(self):
         # self._virtualRobotStreamTimer.start()
-
         while True:
+            self.getAllAgentsInfo()
+            for robot_id in self.ric_robot_manager.robotManager.robots.keys():
+                robot = self.ric_robot_manager.robotManager.robots[robot_id]
+                robot.sendPosInfo(pos_dict=self.agent_info[robot_id])
+
+                print(self.agent_info)
+                obs_dict = self.agent_info.copy()
+                #obs_dict.pop(robot_id)
+                obs_dict['v1'] = {'pos': [0,0], 'rot': [0,0,0]}
+                print(robot_id, obs_dict)
+                robot.sendObstacleInfo(obs_dict={'obstacles': obs_dict})
+
+
+
+
             # if self._virtualRobotStreamTimer > 0.02:
             #     self._virtualRobotStreamTimer.reset()
 
@@ -120,7 +148,20 @@ class RIC_Demo:
             theta_dot = stream.data['estimation']['state']['theta_dot']
             psi = rot[2]  # stream.data['estimation']['state']['psi']
             psi_dot = stream.data['estimation']['state']['psi_dot']
-
+            # TODO: REMOVE after experiments are finished
+            if stream.data['control']['mode'] != 0:
+                if len(self.X) <= 200:
+                    self.X.append(x)
+                    self.Y.append(y)
+                    self.PSI.append(psi)
+                    self.V.append(v)
+                    self.PSI_DOT.append(psi_dot)
+                    print('SAVING DATA')
+                    np.savetxt("X_f008.txt", self.X, delimiter=",")
+                    np.savetxt("Y_f008.txt", self.Y, delimiter=",")
+                    np.savetxt("PSI_f008.txt", self.PSI, delimiter=",")
+                    np.savetxt("V_f008.txt", self.V, delimiter=",")
+                    np.savetxt("PSI_DOT_f008.txt", self.PSI_DOT, delimiter=",")
 
             if robot.id in self.simulation.env.real_agents.keys():
                 self.simulation.setRealAgentConfiguration(agent_id=robot.id, x=x, y=y, theta=theta, psi=psi)
@@ -202,6 +243,7 @@ class RIC_Demo:
                         self.consensus.formation_spacing = float(tmp[2])
                 self.run_consensus()
             elif message['data']['command'].startswith('stop'):
+                self.ric_robot_manager.gui.print(f"Stop Consensus")
                 self.stop_consensus()
             elif message['data']['command'].startswith('vdevs'):
                 num_devs = int(message['data']['command'].split("_")[-2])
