@@ -53,6 +53,7 @@ class RIC_Demo:
         self._thread = threading.Thread(target=self._threadFunction)
 
         self.agent_info = {}
+        self.obs_dict = {}
 
         # TODO: REMOVE after experiments are finished
         self.X = []
@@ -96,20 +97,26 @@ class RIC_Demo:
             [pos, rot] = self.opti_pos_rot(robot_id)
             self.agent_info[robot_id] = {'pos': pos, 'rot': rot.tolist()}
 
+    def getAllObstacles(self):
+        for obs in settings.obstacles.keys():
+            if settings.obstacles[obs]['optitrack_id'] in self.optitrack.rigid_bodies.keys():
+                self.obs_dict[obs] = {'pos': self.optitrack.rigid_bodies[settings.obstacles[obs]['optitrack_id']]['pos'][0:2]}
+
     def _threadFunction(self):
         # self._virtualRobotStreamTimer.start()
         while True:
             self.getAllAgentsInfo()
+            self.getAllObstacles()
             for robot_id in self.ric_robot_manager.robotManager.robots.keys():
                 robot = self.ric_robot_manager.robotManager.robots[robot_id]
                 robot.sendPosInfo(pos_dict=self.agent_info[robot_id])
 
-                print(self.agent_info)
-                obs_dict = self.agent_info.copy()
+                #print(self.agent_info)
+                self.obs_dict.update((self.agent_info.copy()))
                 #obs_dict.pop(robot_id)
-                obs_dict['v1'] = {'pos': [0,0], 'rot': [0,0,0]}
-                print(robot_id, obs_dict)
-                robot.sendObstacleInfo(obs_dict={'obstacles': obs_dict})
+                #obs_dict['v1'] = {'pos': [0,0], 'rot': [0,0,0]}
+                print(robot_id, self.obs_dict)
+                robot.sendObstacleInfo(obs_dict={'obstacles': self.obs_dict})
 
 
 
@@ -156,12 +163,12 @@ class RIC_Demo:
                     self.PSI.append(psi)
                     self.V.append(v)
                     self.PSI_DOT.append(psi_dot)
-                    print('SAVING DATA')
+                    '''print('SAVING DATA')
                     np.savetxt("X_f008.txt", self.X, delimiter=",")
                     np.savetxt("Y_f008.txt", self.Y, delimiter=",")
                     np.savetxt("PSI_f008.txt", self.PSI, delimiter=",")
                     np.savetxt("V_f008.txt", self.V, delimiter=",")
-                    np.savetxt("PSI_DOT_f008.txt", self.PSI_DOT, delimiter=",")
+                    np.savetxt("PSI_DOT_f008.txt", self.PSI_DOT, delimiter=",")'''
 
             if robot.id in self.simulation.env.real_agents.keys():
                 self.simulation.setRealAgentConfiguration(agent_id=robot.id, x=x, y=y, theta=theta, psi=psi)
@@ -290,7 +297,7 @@ class RIC_Demo:
         # self.consensus.agents['vtwipr1'].state['x'] = 0.5
         # self.consensus.agents['vtwipr1'].state['x'] = -1.0
         # time.sleep(2)
-        self.consensus.start()
+        # self.consensus.start()
 
     def stop_consensus(self):
         self.consensus.stop()
