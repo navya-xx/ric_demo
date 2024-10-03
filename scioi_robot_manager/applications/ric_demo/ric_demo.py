@@ -76,7 +76,7 @@ class RIC_Demo:
 
         while not self.simulation.visualization.loaded:
             time.sleep(0.1)
-        self.simulation.visualization.addObject('floor1', 'floor', {'tile_size': 0.5, 'tiles_x': 20, 'tiles_y': 20})
+        self.simulation.visualization.addObject('floor1', 'floor', {'tile_size': 0.5, 'tiles_x': 10, 'tiles_y': 10})
 
         time.sleep(5)
 
