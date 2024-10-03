@@ -70,11 +70,13 @@ class TWIPR:
         ...
 
     def _onStreamCallback(self, stream, *args, **kwargs):
-
         ...
 
     def sendPosInfo(self, pos_dict: dict):
         self.device.command(command='getCurrentOrientation', data=pos_dict)
+
+    def sendTargetInfo(self, pos_dict: dict):
+        self.device.command(command='getTargetPosition', data=pos_dict)
 
     def sendObstacleInfo(self, obs_dict: dict):
         self.device.command(command='getObstacles', data=obs_dict)

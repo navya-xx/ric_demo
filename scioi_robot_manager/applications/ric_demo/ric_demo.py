@@ -107,22 +107,28 @@ class RIC_Demo:
         while True:
             self.getAllAgentsInfo()
             self.getAllObstacles()
+            current_centroid = self.consensus.calcCentroid_WMAC()
             for robot_id in self.ric_robot_manager.robotManager.robots.keys():
+                # OPTITRACK POSITION
                 robot = self.ric_robot_manager.robotManager.robots[robot_id]
                 robot.sendPosInfo(pos_dict=self.agent_info[robot_id])
 
                 #print(self.agent_info)
                 self.obs_dict.update((self.agent_info.copy()))
+                # print(self.agent_info)
+                # OBSTACLES
+                obs_dict = self.agent_info.copy()
                 #obs_dict.pop(robot_id)
                 #obs_dict['v1'] = {'pos': [0,0], 'rot': [0,0,0]}
-                print(robot_id, self.obs_dict)
-                robot.sendObstacleInfo(obs_dict={'obstacles': self.obs_dict})
+                print(robot_id, obs_dict)
+                robot.sendObstacleInfo(obs_dict={'obstacles': obs_dict})
 
-
-
-
-            # if self._virtualRobotStreamTimer > 0.02:
-            #     self._virtualRobotStreamTimer.reset()
+                # TARGET POS
+                robot_target_pos = {
+                    'x': self.consensus.agents[robot_id].formation_ref['x'] - current_centroid[0], 
+                    'y': self.consensus.agents[robot_id].formation_ref['y'] - current_centroid[1]
+                }
+                robot.sendTargetInfo(pos_dict=robot_target_pos)
 
             current_virtual_agents = self.simulation.env.virtual_agents.copy()
             for robot_id, agent in current_virtual_agents.items():
@@ -243,6 +249,8 @@ class RIC_Demo:
                 tmp = message['data']['command'].split("_")
                 if len(tmp) > 1:
                     self.consensus.formation_type = tmp[1]
+                else:
+                    self.consensus.formation_type = None
                 if len(tmp) > 2:
                     if tmp[1] == 'circle':
                         self.consensus.formation_radius = float(tmp[2])
