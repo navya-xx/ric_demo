@@ -52,6 +52,7 @@ class TWIPR:
 
         # General parameters
         self.Ts = 0.1
+        self.pos_ref = np.asarray([0,0])
 
         # State information
         self.pos = np.array([0.0, 0.0])
@@ -95,9 +96,11 @@ class TWIPR:
         else:
             self.flag_pose = 1
 
-
     def getObstacles(self, obstacles):
         self.obstacles = obstacles
+
+    def getTargetPosition(self, pos_ref):
+        self.pos_ref = np.array([pos_ref[0], pos_ref[1]])
     # ==================================================================================================================
     def init(self):
         self.board.init()
@@ -122,20 +125,29 @@ class TWIPR:
             self._update()
 
             # Update state
-            self.kalmanFilter()
+            #self.kalmanFilter()
+            self.simpleEst()
 
             # Calculate control input
-            u = self._calcFormCtrlInput(pos_ref=[0, 1])
-            u_safe = self._calcSafeInput(u)
+            u = np.asarray(self._calcFormCtrlInput(pos_ref=[.5, 1]))
+            u_safe = np.asarray(self._calcSafeInput(u))
+            #u_safe = u_safe + 0.1*(u-u_safe)
+            if (np.abs(u_safe[0]) > 0.04 and np.abs(u[0]) < 0.04) or (np.abs(u_safe[1]) > 0.04 and np.abs(u[1]) < 0.04):
+                u_safe = [0, 0]
+            #u_safe[0] = np.clip(u_safe[0], -0.05, 0.05)
+            #u_safe[1] = np.clip(u_safe[1], -0.05, 0.05)
             self.control.setInput([-u_safe[0] - self.flag_include_integral*self.integral[0] + self.u_offset[0],
-                                   -u_safe[1] - self.flag_include_integral*self.integral[1] + self.u_offset[0]])
+                                   -u_safe[1] - self.flag_include_integral*self.integral[1] + self.u_offset[1]])
 
             #self.control.setInput([-u[0] + self.u_offset[0], -u[1] + self.u_offset[1]])
-            #self.control.setInput([0.0035, 0.0035])
-            #self.control.setInput([0.01 + self.u_offset[0] + 0*0.001, 0.01 + self.u_offset[1]])
+            #self.control.setInput([0.003, 0.003])
+            #self.control.setInput([0.01 + self.u_offset[0], 0.01 + self.u_offset[1]])
             #print(self.estimation.getSample().state.v)
             #self.control.setInput([0.03 + self.u_offset[0], -0.03 + self.u_offset[1]])
             #print(self.estimation.getSample().state.psi_dot)
+
+            #print(f"pos: {self.pos}")
+            #print(u_safe)
 
             time.sleep(self.Ts)
 
@@ -223,8 +235,11 @@ class TWIPR:
         else:
             b0 = self.b0_b
 
-        c0 = 1/1.1**2*a1/b0
-        c1 = (2/1.1*a1-1)/b0
+        pole = 1.5
+        #c0 = 1/1.1**2*a1/b0
+        #c1 = (2/1.1*a1-1)/b0
+        c0 = pole**2*a1/(2*b0)
+        c1 = (2*pole*a1-1)/(2*b0)
 
         psi_dot = self.estimation.getSample().state.psi_dot
         psi = self.rot[2]
@@ -282,18 +297,94 @@ class TWIPR:
                 r += 4*(p-q) / (((p-q).T@(p-q))**2)
                 r_dot += 4*p_dot/(((p-q).T@(p-q))**2) - 16*(p-q) * (p_dot.T@(p-q))/(((p-q).T@(p-q))**3)
 
-            l = 0.1*np.sign(v)
+            l = -0.2*np.sign(np.asarray([np.cos(psi), np.sin(psi)])@r)
             p_tilde = p + l*np.asarray([np.cos(psi), np.sin(psi)]).T
             p_tilde_dot = p_dot + l*psi_dot*np.asarray([-np.sin(psi), np.cos(psi)]).T
             p_tilde_ddot = (p_ddot + l*psi_dot_ref*np.asarray([-np.sin(psi), np.cos(psi)]).T
                             - l*psi_dot**2*np.asarray([np.cos(psi), np.sin(psi)]).T)
 
-            delta_s = 1 / 2
-            alpha = 2
+            delta_s = .4
+            alpha = 1
             h = 1 / U - 1/2*delta_s ** 2 + 1/U**2 * p_tilde_dot.T@r
             lg_h = np.asarray([1/(U**2)*b0/a1*(np.asarray([np.cos(psi), np.sin(psi)]))@r,
                                l*1/U**2 * c0/a1 * np.asarray([-np.sin(psi), np.cos(psi)]).T@r])
             lambda_val = np.max([0, -(alpha*h + 1/(U**2)*p_dot.T@r + 2/(U**3)*((p_dot.T@r)*(p_tilde_dot@r)) +
+                                      1/(U**2)*(p_tilde_ddot.T@r + p_tilde_dot.T@r_dot))/(1/4*lg_h[0]**2 + lg_h[1]**2)])
+
+            u[0] = u[0] + 1/4*1/2 * lambda_val*lg_h[0] + 1/2 * lambda_val*lg_h[1]
+            u[1] = u[1] + 1/4*1/2 * lambda_val*lg_h[0] - 1/2 * lambda_val*lg_h[1]
+
+            if (np.abs(u[0]) >= 0.001 or np.abs(u[1]) >= 0.001) and self.control.mode == 2 and lambda_val == 0:
+                self.integral[0] += self.K_i*u[0]*self.Ts
+                self.integral[1] += self.K_i*u[1]*self.Ts
+                self.flag_include_integral = 1
+            #elif lambda_val > 0:
+                #self.flag_include_integral = 0
+            elif self.control.mode == 0:
+                self.integral = [0, 0]
+            '''
+            print(f'mode: {self.control.mode}')
+            print(f'p_dot: {p_dot}')
+            print(f'psi_dot: {psi_dot}')
+            print(f'a: {a}')
+            print(f'U: {U}')
+            print(f'h: {h}')
+            print(f'Lg_h: {lg_h}')
+            print(f'lambda: {lambda_val}')
+            print(f'u: {u}')
+            print(f'integral: {self.integral}')
+            print(f'(p-q)^2: {p.T@p}')
+            print(f'U: {U}')
+            print(f'r: {r}')
+            print(f'pos: {p}')
+            print(f'v: {v}')
+            '''
+        return u
+
+    def _calcSafeInput2(self, u):
+        if self.obstacles:
+            v = self.estimation.getSample().state.v
+            a1 = self.a1
+            c0 = self.c0
+            if v >= 0:
+                b0 = self.b0_f
+            else:
+                b0 = self.b0_b
+
+            u = np.asarray(u)
+            a = b0 / a1 * (u[0] + u[1]) - 1 / a1 * v
+            psi = self.rot[2]
+            psi_dot = self.estimation.getSample().state.psi_dot
+            p = np.asarray(self.pos)
+            p_dot = v * np.transpose(np.asarray([math.cos(psi), math.sin(psi)]))
+            p_ddot = (a * np.transpose(np.asarray([np.cos(psi), np.sin(psi)])) +
+                      v * psi_dot * np.transpose([-np.sin(psi), np.cos(psi)]))
+            psi_dot_ref = u[0] - u[1]
+
+            l = 0.1
+            p_tilde = p + l * np.asarray([np.cos(psi), np.sin(psi)]).T
+            p_tilde_dot = p_dot + l * psi_dot * np.asarray([-np.sin(psi), np.cos(psi)]).T
+            p_tilde_ddot = (p_ddot + l * psi_dot_ref * np.asarray([-np.sin(psi), np.cos(psi)]).T
+                            - l * psi_dot ** 2 * np.asarray([np.cos(psi), np.sin(psi)]).T)
+
+            U = 0
+            r = np.asarray([0.0, 0.0]).T
+            r_dot = np.asarray([0.0, 0.0]).T
+            for obstacle in self.obstacles.keys():
+                if obstacle == self.robot_settings['id']:
+                    continue
+                q = np.asarray(self.obstacles[obstacle]['pos']).T
+
+                U += 2/((p_tilde-q).T@(p_tilde-q))
+                r += 4*(p_tilde-q) / (((p_tilde-q).T@(p_tilde-q))**2)
+                r_dot += 4*p_tilde_dot/(((p_tilde-q).T@(p_tilde-q))**2) - 16*(p_tilde-q) * (p_tilde_dot.T@(p_tilde-q))/(((p_tilde-q).T@(p_tilde-q))**3)
+
+            delta_s = .4
+            alpha = 1
+            h = 1 / U - 1/2*delta_s ** 2 + 1/U**2 * p_tilde_dot.T@r
+            lg_h = np.asarray([1/(U**2)*b0/a1*(np.asarray([np.cos(psi), np.sin(psi)]))@r,
+                               l*1/U**2 * c0/a1 * np.asarray([-np.sin(psi), np.cos(psi)]).T@r])
+            lambda_val = np.max([0, -(alpha*h + 1/(U**2)*p_tilde_dot.T@r + 2/(U**3)*((p_tilde_dot.T@r)*(p_tilde_dot@r)) +
                                       1/(U**2)*(p_tilde_ddot.T@r + p_tilde_dot.T@r_dot))/(1/4*lg_h[0]**2 + lg_h[1]**2)])
 
             u[0] = u[0] + 1/4*1/2 * lambda_val*lg_h[0] + 1/2 * lambda_val*lg_h[1]

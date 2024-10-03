@@ -38,19 +38,38 @@ agents = {
     },
     'twipr7': {
         'color': [1, 0, 0],
-        'optitrack_id': 6,
+        'optitrack_id': 7,
     },
     'twipr8': {
         'color': [1, 0, 0],
-        'optitrack_id': 6,
+        'optitrack_id': 8,
     },
     'twipr9': {
         'color': [1, 0, 0],
-        'optitrack_id': 6,
+        'optitrack_id': 9,
     },
     'twipr10': {
         'color': [1, 0, 0],
-        'optitrack_id': 6,
+        'optitrack_id': 10,
+    },
+}
+
+obstacles = {
+    'obs1': {
+        'color': [1, 0, 0],
+        'optitrack_id': 11,
+    },
+    'obs2': {
+        'color': [1, 0, 0],
+        'optitrack_id': 12,
+    },
+    'obs3': {
+        'color': [1, 0, 0],
+        'optitrack_id': 13,
+    },
+    'obs4': {
+        'color': [1, 0, 0],
+        'optitrack_id': 14,
     },
 }
 
