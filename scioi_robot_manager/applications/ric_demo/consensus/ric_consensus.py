@@ -395,10 +395,11 @@ class Consensus:
     agents: dict[str, ConsensusTWIPR]
     obstacles: dict[str, Obstacle]
     reach_consensus: bool
+    implement_wmac: bool
     thread: threading.Thread
     gui: IdeenExpoGUI
 
-    def __init__(self, agents=None, optitrack=None, gui=None, formation_type=None, formation_radius=None, formation_spacing=None, *args, **kwargs):
+    def __init__(self, agents=None, optitrack=None, gui=None, formation_type=None, formation_radius=None, formation_spacing=None, implement_wmac=False, *args, **kwargs):
         if agents is not None:
             self.agents = agents
         else:
@@ -409,6 +410,18 @@ class Consensus:
         self.thread = threading.Thread(target=self._threadFunc)
 
         self.reach_consensus = False
+
+        self.implement_wmac = implement_wmac
+
+        if (implement_wmac):
+            self.rng = np.random.default_rng()
+            # self.adj_graph = np.array([
+            #                 [1, 0, 1, 0, 1],
+            #                 [1, 1, 0, 1, 1],
+            #                 [0, 0, 1, 0, 1],
+            #                 [1, 1, 0, 1, 0],
+            #                 [0, 1, 1, 0, 1]
+            #                 ])
 
         self.thread_running = False
 
@@ -467,6 +480,21 @@ class Consensus:
     def setAgentFormationRef(self, id, formation_ref):
         self.agents[id].formation_ref = formation_ref
 
+    def generate_WMAC_weights(self, N):
+        # fully connected network
+        WMAC_weights = self.rng.uniform(0, 1, [N,])
+        WMAC_weights /= np.sum(WMAC_weights, axis=1)
+        return WMAC_weights
+    
+    def calcCentroid_WMAC(self):
+        w = self.generate_WMAC_weights(len(self.agents))
+        x = 0, y = 0
+        for key, agent_id in enumerate(self.agents.keys()):
+            agent = self.agents[agent_id]
+            x += w[key] * (agent.state['x'] - agent.formation_ref['x'])
+            y += w[key] * (agent.state['y'] - agent.formation_ref['y'])
+        return np.array([x, y])
+
     def calcCentroid(self):
         if self.counter_centroid_comp % self.comp_centroid_every == 0:
             num_agents = len(self.agents.keys())
@@ -522,68 +550,123 @@ class Consensus:
 
         # self.centroid -= (self.centroid * speed)
 
+    def circular_formation(self, *args, **kwargs):
+        num_of_agents = len(self.agents)
+        if 'radius' in kwargs:
+            radius = kwargs['radius']
+        else:
+            radius = (num_of_agents - 1) * 0.2 / 2 / np.pi
+        pos_list = []
+        idx = 0
+        num_of_real_agents = 0
+        # print(self.agents.keys())
+        for agent_id in self.agents.keys():
+            pos_list.append([radius * np.cos(2 * np.pi * idx / num_of_agents), radius * np.sin(2 * np.pi * idx / num_of_agents), (2 * np.pi * idx / num_of_agents) + np.pi/2])
+            idx += 1
+            if agent_id.startswith('twipr'):
+                num_of_real_agents += 1
+        if num_of_real_agents > 0:
+            real_ratio = int(np.ceil(num_of_agents / num_of_real_agents))
+        else:
+            real_ratio = num_of_agents
+        id_order = [0] * num_of_agents
+        # Assuming real robots are the first in the list
+        if num_of_real_agents > 0:
+            for i in range(num_of_real_agents):
+                id_order[i] = i * real_ratio
+        idx = num_of_real_agents
+        for i in range(num_of_agents):
+            if i % real_ratio == 0:
+                continue
+            id_order[idx] = i
+            idx += 1
+        idx = 0
+        for agent_id, agent in self.agents.items():
+            agent.formation_ref['x'] = pos_list[id_order[idx]][0]
+            agent.formation_ref['y'] = pos_list[id_order[idx]][1]
+            agent.formation_ref['psi'] = pos_list[id_order[idx]][2]
+            idx += 1
+
+    def line_formation(self, *args, **kwargs):
+        num_of_agents = len(self.agents)
+        spacing = kwargs['spacing']
+        length = (num_of_agents - 1) * spacing
+        if num_of_agents == 1:
+            spacing = 0
+        pos_list = []
+        for i in range(num_of_agents):
+            pos_list.append(- length / 2 + spacing * i)
+
+        # Real robots are close to center
+        pos_list_id = np.argsort(np.abs(pos_list))
+        pos_list = np.array(pos_list)[pos_list_id]
+        idx = 0
+        for agent_id, agent in self.agents.items():
+            if agent_id.startswith('twipr'):
+                agent.formation_ref['y'] = pos_list[idx]
+                idx += 1
+            agent.formation_ref['x'] = 0
+            agent.formation_ref['psi'] = np.pi/2
+        for agent_id, agent in self.agents.items():
+            if not agent_id.startswith('twipr'):
+                agent.formation_ref['x'] = pos_list[idx]
+                idx += 1
+
+    def star_formation(self, *args, **kwargs):
+        num_of_agents = len(self.agents)
+        if 'radius' in kwargs:
+            radius = kwargs['radius']
+        else:
+            radius = (num_of_agents - 1) * 0.4 / 2 / np.pi
+        
+        pos_list = []
+        idx = 0
+        num_of_real_agents = 0
+        # print(self.agents.keys())
+        first_agent = True
+        for agent_id in self.agents.keys():
+            if first_agent:
+                pos_list.append([0, 0, 0]) # one agent at the center of the circle
+                first_agent = False
+            else:
+                pos_list.append([
+                        radius * np.cos(2 * np.pi * idx / (num_of_agents - 1)), 
+                        radius * np.sin(2 * np.pi * idx / (num_of_agents - 1)), 
+                        (2 * np.pi * idx / (num_of_agents - 1)) + np.pi/2
+                        ])
+            idx += 1
+            if agent_id.startswith('twipr'):
+                num_of_real_agents += 1
+        if num_of_real_agents > 0:
+            real_ratio = int(np.ceil(num_of_agents / num_of_real_agents))
+        else:
+            real_ratio = num_of_agents
+        id_order = [0] * num_of_agents
+        # Assuming real robots are the first in the list
+        if num_of_real_agents > 0:
+            for i in range(num_of_real_agents):
+                id_order[i] = i * real_ratio
+        idx = num_of_real_agents
+        for i in range(num_of_agents):
+            if i % real_ratio == 0:
+                continue
+            id_order[idx] = i
+            idx += 1
+        idx = 0
+        for agent_id, agent in self.agents.items():
+            agent.formation_ref['x'] = pos_list[id_order[idx]][0]
+            agent.formation_ref['y'] = pos_list[id_order[idx]][1]
+            agent.formation_ref['psi'] = pos_list[id_order[idx]][2]
+            idx += 1
+
 
     def formation(self, formation_type='circle', *args, **kwargs):
         num_of_agents = len(self.agents)
         if formation_type == 'circle':
-            if 'radius' in kwargs:
-                radius = kwargs['radius']
-            else:
-                radius = (num_of_agents - 1) * 0.2 / 2 / np.pi
-            pos_list = []
-            idx = 0
-            num_of_real_agents = 0
-            # print(self.agents.keys())
-            for agent_id in self.agents.keys():
-                pos_list.append([radius * np.cos(2 * np.pi * idx / num_of_agents), radius * np.sin(2 * np.pi * idx / num_of_agents), (2 * np.pi * idx / num_of_agents) + np.pi/2])
-                idx += 1
-                if agent_id.startswith('twipr'):
-                    num_of_real_agents += 1
-            if num_of_real_agents > 0:
-                real_ratio = int(np.ceil(num_of_agents / num_of_real_agents))
-            else:
-                real_ratio = num_of_agents
-            id_order = [0] * num_of_agents
-            # Assuming real robots are the first in the list
-            if num_of_real_agents > 0:
-                for i in range(num_of_real_agents):
-                    id_order[i] = i * real_ratio
-            idx = num_of_real_agents
-            for i in range(num_of_agents):
-                if i % real_ratio == 0:
-                    continue
-                id_order[idx] = i
-                idx += 1
-            idx = 0
-            for agent_id, agent in self.agents.items():
-                agent.formation_ref['x'] = pos_list[id_order[idx]][0]
-                agent.formation_ref['y'] = pos_list[id_order[idx]][1]
-                agent.formation_ref['psi'] = pos_list[id_order[idx]][2]
-                idx += 1
+            self.circular_formation(*args, **kwargs)
 
         elif formation_type == 'line':
-            spacing = kwargs['spacing']
-            length = (num_of_agents - 1) * spacing
-            if num_of_agents == 1:
-                spacing = 0
-            pos_list = []
-            for i in range(num_of_agents):
-                pos_list.append(- length / 2 + spacing * i)
-
-            # Real robots are close to center
-            pos_list_id = np.argsort(np.abs(pos_list))
-            pos_list = np.array(pos_list)[pos_list_id]
-            idx = 0
-            for agent_id, agent in self.agents.items():
-                if agent_id.startswith('twipr'):
-                    agent.formation_ref['y'] = pos_list[idx]
-                    idx += 1
-                agent.formation_ref['x'] = 0
-                agent.formation_ref['psi'] = np.pi/2
-            for agent_id, agent in self.agents.items():
-                if not agent_id.startswith('twipr'):
-                    agent.formation_ref['x'] = pos_list[idx]
-                    idx += 1
+            self.line_formation(*args, **kwargs)
 
     def _threadFunc(self):
         print('test_thread')
@@ -591,7 +674,7 @@ class Consensus:
         if self.is_formation_control:
             idx = 1
             self.formation(formation_type=self.formation_type, idx=idx, radius=self.formation_radius, spacing=self.formation_spacing)
-            # self.add_agents_as_obstacles()
+            self.add_agents_as_obstacles()
         else:
             if 'twipr1' in self.agents:
                 self.agents['twipr1'].formation_ref = {'x':0.2967906892299652, 'y': -0.25703999400138855, 'psi': 0}
