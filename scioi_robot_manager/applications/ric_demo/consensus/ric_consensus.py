@@ -488,7 +488,7 @@ class Consensus:
     
     def calcCentroid_WMAC(self):
         w = self.generate_WMAC_weights(len(self.agents))
-        x = 0, y = 0
+        x = 0; y = 0
         for key, agent_id in enumerate(self.agents.keys()):
             agent = self.agents[agent_id]
             x += w[key] * (agent.state['x'] - agent.formation_ref['x'])

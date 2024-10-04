@@ -80,7 +80,7 @@ class RIC_Demo:
 
         while not self.simulation.visualization.loaded:
             time.sleep(0.1)
-        self.simulation.visualization.addObject('floor1', 'floor', {'tile_size': 0.5, 'tiles_x': 20, 'tiles_y': 20})
+        self.simulation.visualization.addObject('floor1', 'floor', {'tile_size': 0.5, 'tiles_x': 10, 'tiles_y': 10})
 
         time.sleep(5)
 
@@ -134,30 +134,30 @@ class RIC_Demo:
         while True:
             self.getAllAgentsInfo()
             self.getAllObstacles()
-            current_centroid = self.consensus.calcCentroid_WMAC()
+            # current_centroid = self.consensus.calcCentroid_WMAC()
+
+            # ------ OBSTACLES ------
+            # Add agents as obstacles
+            self.obs_dict.update((self.agent_info.copy()))
+            # Add static OBSTACLES
+            #obs_dict = self.agent_info.copy()
+            #print(obs_dict)
+
             for robot_id in self.ric_robot_manager.robotManager.robots.keys():
                 # OPTITRACK POSITION
                 robot = self.ric_robot_manager.robotManager.robots[robot_id]
                 robot.sendPosInfo(pos_dict=self.agent_info[robot_id])
-
-                #print(self.agent_info)
-                self.obs_dict.update((self.agent_info.copy()))
-                # print(self.agent_info)
-                # OBSTACLES
-                obs_dict = self.agent_info.copy()
-                #obs_dict.pop(robot_id)
-                #obs_dict['v1'] = {'pos': [0,0], 'rot': [0,0,0]}
-                print(robot_id, obs_dict)
-                robot.sendObstacleInfo(obs_dict={'obstacles': obs_dict})
+                robot.sendObstacleInfo(obs_dict={'obstacles': self.obs_dict})
 
                 # TARGET POS
-                robot_target_pos = {
+                '''robot_target_pos = {
                     'x': self.consensus.agents[robot_id].formation_ref['x'] - current_centroid[0], 
                     'y': self.consensus.agents[robot_id].formation_ref['y'] - current_centroid[1]
                 }
-                robot.sendTargetInfo(pos_dict=robot_target_pos)
+                robot.sendTargetInfo(pos_dict=robot_target_pos)'''
 
-            current_virtual_agents = self.simulation.env.virtual_agents.copy()
+            # TODO: Remove virtual agents
+            '''current_virtual_agents = self.simulation.env.virtual_agents.copy()
             for robot_id, agent in current_virtual_agents.items():
                 sample = self.buildSampleFromSimulation(robot_id)
                 if robot_id in self.ric_robot_manager.robotManager.robots.keys():
@@ -173,7 +173,7 @@ class RIC_Demo:
                         agent.state['theta'] = sample['estimation']['state']['theta']
                         agent.state['theta_dot'] = sample['estimation']['state']['theta_dot']
                         agent.state['psi'] = sample['estimation']['state']['psi']
-                        agent.state['psi_dot'] = sample['estimation']['state']['psi_dot']
+                        agent.state['psi_dot'] = sample['estimation']['state']['psi_dot']'''
 
             time.sleep(self.Ts)
 
