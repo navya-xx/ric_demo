@@ -54,10 +54,10 @@ class RIC_Demo:
         self.ric_robot_manager.gui.registerCallback('rx_message', self._guiMessage_callback)
 
         self._thread = threading.Thread(target=self._threadFunction)
-        self._optitrack_thread = threading.Thread(target=self._optitrack_threadFunction)
 
         self.agent_info = {}
         self.obs_dict = {}
+        self._optitrack_thread = threading.Thread(target=self._optitrack_threadFunction)
 
         # TODO: REMOVE after experiments are finished
         self.X = []
