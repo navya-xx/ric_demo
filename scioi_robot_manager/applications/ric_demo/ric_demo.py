@@ -138,7 +138,7 @@ class RIC_Demo:
 
             # ------ OBSTACLES ------
             # Add agents as obstacles
-            self.obs_dict.update((self.agent_info.copy()))
+            # self.obs_dict.update((self.agent_info.copy()))
             # Add static OBSTACLES
             #obs_dict = self.agent_info.copy()
             #print(obs_dict)
