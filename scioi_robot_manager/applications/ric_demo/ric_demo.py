@@ -31,6 +31,8 @@ class RIC_Demo:
     _virtualRobotStreamTimer: Timer
 
     _thread: threading.Thread
+    _optitrack_thread: threading.Thread
+
     def __init__(self):
 
         self.optitrack = OptiClient("127.0.0.1", "127.0.0.1", True, 0)
@@ -42,6 +44,7 @@ class RIC_Demo:
         self.ric_robot_manager.registerCallback('robot_disconnected', self._robotManagerRobotDisconnected_callback)
 
         self.Ts = 0.1
+        self.oTs = 0.01
         self.consensus = Consensus(optitrack=self.optitrack, gui=self.ric_robot_manager.gui, Ts=self.Ts)
 
         self.simulation = RIC_Demo_Simulation()
@@ -51,6 +54,7 @@ class RIC_Demo:
         self.ric_robot_manager.gui.registerCallback('rx_message', self._guiMessage_callback)
 
         self._thread = threading.Thread(target=self._threadFunction)
+        self._optitrack_thread = threading.Thread(target=self._optitrack_threadFunction)
 
         self.agent_info = {}
         self.obs_dict = {}
@@ -102,6 +106,29 @@ class RIC_Demo:
             if settings.obstacles[obs]['optitrack_id'] in self.optitrack.rigid_bodies.keys():
                 self.obs_dict[obs] = {'pos': self.optitrack.rigid_bodies[settings.obstacles[obs]['optitrack_id']]['pos'][0:2]}
 
+    def _optitrack_threadFunction(self):
+        """ Runs Kalman filter on each robots position to give better estimates at faster rate """
+        optitrack_prevpos_dict = {}
+        sanitized_pos_dict = {}
+        for robot_id in self.ric_robot_manager.robotManager.robots.keys():
+            optitrack_prevpos_dict[robot_id] = [0, 0]  # keep prev optitrack pos
+            sanitized_pos_dict[robot_id] = np.array((2, 2), dtype=float)  # keep last 10 sanitized values
+        
+        while(True):
+            for robot_id in self.ric_robot_manager.robotManager.robots.keys():
+                [pos, rot] = self.opti_pos_rot(robot_id)
+                # if pos does not change, apply simple interpolator
+                if pos[0] == optitrack_prevpos_dict[robot_id][0] and pos[1] == optitrack_prevpos_dict[robot_id][1]:
+                    # simple linear extrapolation
+                    new_pos = sanitized_pos_dict[robot_id][-1, :] + self.oTs * np.diff(sanitized_pos_dict[robot_id], axis=0)
+                    sanitized_pos_dict[robot_id][0, :] = sanitized_pos_dict[robot_id][1, :]
+                    sanitized_pos_dict[robot_id][1, :] = new_pos
+                    self.obs_dict[robot_id] = {'pos': new_pos.tolist()}
+                else:
+                    self.obs_dict[robot_id] = {'pos': pos}
+            
+            time.sleep(self.oTs)
+        
     def _threadFunction(self):
         # self._virtualRobotStreamTimer.start()
         while True:
