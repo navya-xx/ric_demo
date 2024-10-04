@@ -57,7 +57,7 @@ class RIC_Demo:
 
         self.agent_info = {}
         self.obs_dict = {}
-        self._optitrack_thread = threading.Thread(target=self._optitrack_threadFunction)
+        # self._optitrack_thread = threading.Thread(target=self._optitrack_threadFunction)
 
         # TODO: REMOVE after experiments are finished
         self.X = []
@@ -189,19 +189,19 @@ class RIC_Demo:
             psi = rot[2]  # stream.data['estimation']['state']['psi']
             psi_dot = stream.data['estimation']['state']['psi_dot']
             # TODO: REMOVE after experiments are finished
-            if stream.data['control']['mode'] != 0:
-                if len(self.X) <= 200:
-                    self.X.append(x)
-                    self.Y.append(y)
-                    self.PSI.append(psi)
-                    self.V.append(v)
-                    self.PSI_DOT.append(psi_dot)
-                    '''print('SAVING DATA')
-                    np.savetxt("X_f008.txt", self.X, delimiter=",")
-                    np.savetxt("Y_f008.txt", self.Y, delimiter=",")
-                    np.savetxt("PSI_f008.txt", self.PSI, delimiter=",")
-                    np.savetxt("V_f008.txt", self.V, delimiter=",")
-                    np.savetxt("PSI_DOT_f008.txt", self.PSI_DOT, delimiter=",")'''
+            # if stream.data['control']['mode'] != 0:
+            #     if len(self.X) <= 200:
+            #         self.X.append(x)
+            #         self.Y.append(y)
+            #         self.PSI.append(psi)
+            #         self.V.append(v)
+            #         self.PSI_DOT.append(psi_dot)
+                    # print('SAVING DATA')
+                    # np.savetxt("X_f008.txt", self.X, delimiter=",")
+                    # np.savetxt("Y_f008.txt", self.Y, delimiter=",")
+                    # np.savetxt("PSI_f008.txt", self.PSI, delimiter=",")
+                    # np.savetxt("V_f008.txt", self.V, delimiter=",")
+                    # np.savetxt("PSI_DOT_f008.txt", self.PSI_DOT, delimiter=",")
 
             if robot.id in self.simulation.env.real_agents.keys():
                 self.simulation.setRealAgentConfiguration(agent_id=robot.id, x=x, y=y, theta=theta, psi=psi)

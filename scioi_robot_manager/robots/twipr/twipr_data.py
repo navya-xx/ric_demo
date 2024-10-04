@@ -101,6 +101,11 @@ twipr_wifi_sample = {
             'speed': 1,  # float [grad/s] [X]
             'angle': 2  # float [grad]
         }
+    },
+    'consensus': {
+        'target_pos_ref_x': 0, # float
+        'target_pos_ref_y': 0, # float
+        'dist_from_ref': 0 # float
     }
 }
 
@@ -156,4 +161,7 @@ def get_twipr_wifi_sample(i, name, id, batteryTimeConst=0.005, radius=0.5, movem
     data['drive']['right']['torque'] = random.uniform(0, 1)
     data['drive']['right']['speed'] = random.uniform(0, 10)
     data['drive']['right']['angle'] = random.uniform(-180, 180)
+    data['consensus']['target_pos_ref_x'] = random.uniform(-2.5, 2.5)
+    data['consensus']['target_pos_ref_y'] = random.uniform(-2.5, 2.5)
+    data['consensus']['dist_from_ref'] = random.uniform(-2.5, 2.5)
     return data

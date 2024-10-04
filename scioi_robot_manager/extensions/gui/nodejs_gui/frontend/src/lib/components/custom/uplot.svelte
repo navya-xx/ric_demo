@@ -18,8 +18,8 @@
 
 	let plot: uPlot;
 
-    export let keys = ['time', 'v', 'psi_dot', 'psi', 'theta_dot', 'theta'];
-	export let units = ['s', 'm/s', 'rad/s', 'deg','rad/s', 'deg'];
+    export let keys = ['time', 'v', 'psi_dot', 'psi', 'theta_dot', 'theta', 'd_cons'];
+	export let units = ['s', 'm/s', 'rad/s', 'deg','rad/s', 'deg', 'm'];
 	const colors = [
 		'black',
 		'blue',
@@ -47,7 +47,8 @@
 		[-10, 10],
 		[-1.57, 1.57],
 		[-1, 1],
-		[-1.57, 1.57]
+		[-1.57, 1.57],
+		[-2, 2]
 	];
 
 	function onResize(entry: ResizeObserverEntry) {

@@ -95,5 +95,10 @@ twipr_wifi_sample = {
             'speed': 1,  # float [grad/s] [X]
             'angle': 2  # float [grad]
         }
+    },
+    'consensus': {
+        'target_pos_ref_x': 0, # float
+        'target_pos_ref_y': 0, # float
+        'dist_from_ref': 0 # float
     }
 }
