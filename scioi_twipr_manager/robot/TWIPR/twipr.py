@@ -182,6 +182,7 @@ class TWIPR:
     def noEst(self):
         self.pos = self.new_opti_meas[0:2]
         self.rot[2] = self.new_opti_meas[2]
+    
     def simpleEst(self):
         if self.flag_pose:
             self.pos = self.new_opti_meas[0:2]
