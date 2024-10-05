@@ -3,6 +3,7 @@ import { writable } from "svelte/store";
 export const currentBot = writable("");
 export const activeBots = writable<string[]>([]);
 export const currentView = writable("overview");
+export const opti_track = writable<boolean>(true);
 
 export const fps = writable(0);
 

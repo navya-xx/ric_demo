@@ -1,4 +1,5 @@
 import dataclasses
+import numpy as np
 
 from robot.TWIPR.control.twipr_control import TWIPR_Control_Sample
 from robot.TWIPR.estimation.twipr_estimation import TWIPR_Estimation_Sample
@@ -15,6 +16,13 @@ class TWIPR_Sample_General:
     time: int = 0
     tick: int = 0
     sample_time: float = 0
+    opti_track: bool = True
+
+@dataclasses.dataclass
+class TWIPR_Sample_Consensus:
+    target_pos_ref_x: float = 0
+    target_pos_ref_y: float = 0
+    dist_from_ref: float = 0
 
 
 @dataclasses.dataclass
@@ -24,4 +32,5 @@ class TWIPR_Sample:
     estimation: TWIPR_Estimation_Sample = dataclasses.field(default_factory=TWIPR_Estimation_Sample)
     drive: TWIPR_Drive_Sample = dataclasses.field(default_factory=TWIPR_Drive_Sample)
     sensors: TWIPR_Sensors_Sample = dataclasses.field(default_factory=TWIPR_Sensors_Sample)
+    consensus: TWIPR_Sample_Consensus = dataclasses.field(default_factory=TWIPR_Sample_Consensus)
 

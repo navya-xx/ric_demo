@@ -173,11 +173,16 @@ class TWIPR:
         sample.general.time = self.communication.wifi.getTime()
         sample.general.tick = 0
         sample.general.sample_time = 0.1
+        sample.general.opti_track = self.flag_pose == 1
 
         sample.control = self.control.getSample()
         sample.estimation = self.estimation.getSample()
         sample.drive = self.drive.getSample()
         sample.sensors = self.sensors.getSample()
+
+        sample.consensus.target_pos_ref_x = self.pos_ref[0].item()
+        sample.consensus.target_pos_ref_y = self.pos_ref[1].item()
+        sample.consensus.dist_from_ref = np.linalg.norm(self.pos_ref - self.pos)
 
         return sample
 

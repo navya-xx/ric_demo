@@ -1,16 +1,24 @@
 #!/bin/bash
 
 # Define variables
-FILE_TO_COPY="$1"
-REMOTE_USER="your_username"  # Replace with your SSH username
-REMOTE_MACHINES=("remote1.example.com" "remote2.example.com" "remote3.example.com")  # Replace with your remote machine addresses
-REMOTE_PATH="/path/on/remote/machine"  # Replace with the destination directory on remote machines
+FILE_TO_COPY="twipr.py"
+REMOTE_USER="lehmann"  # Replace with your SSH username
+REMOTE_MACHINES=(
+    "192.168.0.102" 
+    "192.168.0.103" 
+    "192.168.0.106" 
+    "192.168.0.107" 
+    "192.168.0.108" 
+    )
+REMOTE_PATH="/home/lehmann/software/"  # Replace with the destination directory on remote machines
+LOCAL_PATH="../../../scioi_twipr_manager/robot/TWIPR/"
+PASSWORD="scioip11"
 
 # Function to copy file to a single remote machine
 copy_file() {
     local remote_host=$1
     echo "Copying file to $remote_host..."
-    scp "$FILE_TO_COPY" "$REMOTE_USER@$remote_host:$REMOTE_PATH"
+    sshpass -p "${PASSWORD}" scp "${LOCAL_PATH}${FILE_TO_COPY}" "$REMOTE_USER@$remote_host:${REMOTE_PATH}${FILE_TO_COPY}"
     
     if [ $? -eq 0 ]; then
         echo "File successfully copied to $remote_host"
@@ -19,14 +27,9 @@ copy_file() {
     fi
 }
 
-# Check if file to copy is passed as an argument
-if [ -z "$FILE_TO_COPY" ]; then
-    echo "Usage: $0 <file-to-copy>"
-    exit 1
-fi
 
 # Check if the file exists
-if [ ! -f "$FILE_TO_COPY" ]; then
+if [ ! -f "${LOCAL_PATH}${FILE_TO_COPY}" ]; then
     echo "Error: File '$FILE_TO_COPY' not found."
     exit 1
 fi
