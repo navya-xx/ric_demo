@@ -49,6 +49,8 @@ class TWIPR:
                                            arguments=['pos'], description='')
         self.communication.wifi.addCommand(identifier='getObstacles', callback=self.getObstacles,
                                            arguments=['obstacles'], description='')
+        self.communication.wifi.addCommand(identifier='getTargetPosition', callback=self.getTargetPosition,
+                                           arguments=['pos_ref'], description='')
 
         # General parameters
         self.Ts = 0.1
@@ -67,7 +69,7 @@ class TWIPR:
         self.b0_f = self.robot_settings['v_gain_static_f']
         self.b0_b = self.robot_settings['v_gain_static_b']
         self.c0 = self.robot_settings['psi_dot_gain_static']
-        self.pos_ref = self.robot_settings['pos_ref']
+        # self.pos_ref = self.robot_settings['pos_ref']
 
         # Kalman filter and measurements
         self.Q_kalman = np.array([[0.00075877, 0],
@@ -135,7 +137,7 @@ class TWIPR:
             u[1] = np.clip(u[1], -0.02, 0.02)
             u_safe = np.asarray(self._calcSafeInput(u))
             #u_safe = u_safe + 0.1*(u-u_safe)
-            if (np.abs(u_safe[0]) > 0.04 and np.abs(u[0]) < 0.04) or (np.abs(u_safe[1]) > 0.04 and np.abs(u[1]) < 0.04):
+            if (np.abs(u_safe[0]) > 0.04) or (np.abs(u_safe[1]) > 0.04) or np.abs(u_safe[0]-u_safe[1]) > 0.04:
                 u_safe = [0, 0]
             #u_safe[0] = np.clip(u_safe[0], -0.05, 0.05)
             #u_safe[1] = np.clip(u_safe[1], -0.05, 0.05)
@@ -239,7 +241,7 @@ class TWIPR:
         else:
             b0 = self.b0_b
 
-        pole = 1.5
+        pole = 2
         #c0 = 1/1.1**2*a1/b0
         #c1 = (2/1.1*a1-1)/b0
         c0 = pole**2*a1/(2*b0)
