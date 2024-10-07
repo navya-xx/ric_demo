@@ -69,6 +69,7 @@ class TWIPR_Manager:
     def emergencyStop(self):
         print("Emergency Stop!")
         for robot in self.robots.values():
+            # self.setRobotControlMode(robot_id, "off")
             robot.setControlMode(0)
 
     # ------------------------------------------------------------------------------------------------------------------

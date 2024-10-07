@@ -44,7 +44,7 @@ class RIC_Demo:
         self.ric_robot_manager.registerCallback('robot_disconnected', self._robotManagerRobotDisconnected_callback)
 
         self.Ts = 0.1
-        self.oTs = 0.01
+        self.oTs = 0.05
         self.consensus = Consensus(optitrack=self.optitrack, gui=self.ric_robot_manager.gui, Ts=self.Ts)
 
         self.simulation = RIC_Demo_Simulation()
@@ -75,8 +75,11 @@ class RIC_Demo:
         self.ric_robot_manager.start()
         time.sleep(1)
         self.simulation.start()
+        # time.sleep(5)
+        # self._optitrack_thread.start()
         time.sleep(1)
         self._thread.start()
+
 
         while not self.simulation.visualization.loaded:
             time.sleep(0.1)
@@ -110,22 +113,27 @@ class RIC_Demo:
         """ Runs Kalman filter on each robots position to give better estimates at faster rate """
         optitrack_prevpos_dict = {}
         sanitized_pos_dict = {}
-        for robot_id in self.ric_robot_manager.robotManager.robots.keys():
-            optitrack_prevpos_dict[robot_id] = [0, 0]  # keep prev optitrack pos
-            sanitized_pos_dict[robot_id] = np.array((2, 2), dtype=float)  # keep last 10 sanitized values
         
         while(True):
             for robot_id in self.ric_robot_manager.robotManager.robots.keys():
+                if robot_id not in optitrack_prevpos_dict:
+                    optitrack_prevpos_dict[robot_id] = (0, 0)  # keep prev optitrack pos
+                if robot_id not in sanitized_pos_dict:
+                    sanitized_pos_dict[robot_id] = np.zeros((2, 2), dtype=float)  # keep last 2 sanitized values
                 [pos, rot] = self.opti_pos_rot(robot_id)
                 # if pos does not change, apply simple interpolator
                 if pos[0] == optitrack_prevpos_dict[robot_id][0] and pos[1] == optitrack_prevpos_dict[robot_id][1]:
                     # simple linear extrapolation
                     new_pos = sanitized_pos_dict[robot_id][-1, :] + self.oTs * np.diff(sanitized_pos_dict[robot_id], axis=0)
+                    new_pos = new_pos.flatten()
                     sanitized_pos_dict[robot_id][0, :] = sanitized_pos_dict[robot_id][1, :]
                     sanitized_pos_dict[robot_id][1, :] = new_pos
-                    self.obs_dict[robot_id] = {'pos': new_pos.tolist()}
+                    self.obs_dict[robot_id] = {'pos': (new_pos[0].item(), new_pos[1].item())}
+                    # print(f"{robot_id} : Wrong input from optitrack")
                 else:
                     self.obs_dict[robot_id] = {'pos': pos}
+                    optitrack_prevpos_dict[robot_id] = pos
+                    # print(f"{robot_id} : Correct input from optitrack")
             
             time.sleep(self.oTs)
         
@@ -134,27 +142,39 @@ class RIC_Demo:
         while True:
             self.getAllAgentsInfo()
             self.getAllObstacles()
-            # current_centroid = self.consensus.calcCentroid_WMAC()
+            current_centroid = self.consensus.calcCentroid_WMAC()
+            # current_centroid = np.array([0, 0])
 
             # ------ OBSTACLES ------
             # Add agents as obstacles
-            # self.obs_dict.update((self.agent_info.copy()))
+            self.obs_dict.update((self.agent_info.copy()))
             # Add static OBSTACLES
             #obs_dict = self.agent_info.copy()
-            #print(obs_dict)
+            # print(obs_dict)
 
-            for robot_id in self.ric_robot_manager.robotManager.robots.keys():
-                # OPTITRACK POSITION
-                robot = self.ric_robot_manager.robotManager.robots[robot_id]
-                robot.sendPosInfo(pos_dict=self.agent_info[robot_id])
-                robot.sendObstacleInfo(obs_dict={'obstacles': self.obs_dict})
+            print(self.obs_dict)
+            try:
+                for robot_id in self.ric_robot_manager.robotManager.robots.keys():
+                    # OPTITRACK POSITION
+                    robot = self.ric_robot_manager.robotManager.robots[robot_id]
+                    robot.sendPosInfo(pos_dict=self.agent_info[robot_id])
+                    robot.sendObstacleInfo(obs_dict={'obstacles': self.obs_dict})
 
-                # TARGET POS
-                '''robot_target_pos = {
-                    'x': self.consensus.agents[robot_id].formation_ref['x'] - current_centroid[0], 
-                    'y': self.consensus.agents[robot_id].formation_ref['y'] - current_centroid[1]
-                }
-                robot.sendTargetInfo(pos_dict=robot_target_pos)'''
+                    # TARGET POS
+                    centroid_x = np.clip(current_centroid[robot_id][0], -0.2, 0.2)
+                    centroid_y = np.clip(current_centroid[robot_id][1], -0.5, 0.5)
+                    pos_x = self.consensus.agents[robot_id].formation_ref['x'] + centroid_x
+                    pos_y = self.consensus.agents[robot_id].formation_ref['y'] + centroid_y
+                    robot_target_pos = {
+                        'pos_ref': tuple([pos_x.item(), pos_y.item()])
+                    }
+                    print(f"Centroid : {centroid_x},{centroid_y}")
+                    print(f"{robot_id} : {robot_target_pos}")
+                    robot.sendTargetInfo(pos_dict=robot_target_pos)
+
+
+            except Exception as e:
+                print(e)
 
             # TODO: Remove virtual agents
             '''current_virtual_agents = self.simulation.env.virtual_agents.copy()
@@ -279,7 +299,7 @@ class RIC_Demo:
                 else:
                     self.consensus.formation_type = None
                 if len(tmp) > 2:
-                    if tmp[1] == 'circle':
+                    if tmp[1] == 'circle' or tmp[1] == 'star':
                         self.consensus.formation_radius = float(tmp[2])
                     elif tmp[1] == 'line':
                         self.consensus.formation_spacing = float(tmp[2])
@@ -324,6 +344,10 @@ class RIC_Demo:
             time.sleep(0.5)
 
     def run_consensus(self):
+
+        self.consensus.formation(formation_type=self.consensus.formation_type, idx=1, radius=self.consensus.formation_radius,
+                       spacing=self.consensus.formation_spacing)
+
         for robot in self.ric_robot_manager.robotManager.robots.values():
             robot.setControlMode(mode=TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING)
             self.consensus.agents[robot.id].control_mode = TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING

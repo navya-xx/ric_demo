@@ -7,8 +7,8 @@
 	import { botColor } from "$lib/helpers/bot-colors";
 	import { shortcut } from "$lib/helpers/shortcut";
 	import Gamepad from "lucide-svelte/icons/gamepad-2";
-	import OptiTrack from "lucide-svelte/icons/target-arrow";
-	import OptiTrackNot from "lucide-svelte/icons/cricket-ball";
+	import Crosshair from "lucide-svelte/icons/crosshair";
+	import CircleDashed from "lucide-svelte/icons/circle-dashed";
 
 	import * as ContextMenu from "$lib/components/ui/context-menu";
 
@@ -117,13 +117,13 @@
 							<div
 								class="mx-auto flex w-fit flex-row rounded-lg bg-neutral-300 p-0.5 pr-2 text-xs"
 							>
-								<OptiTrack class="h-4 p-0" />
+								<Crosshair class="h-4 p-0" />
 							</div>
 						{:else}
 							<div
 								class="mx-auto flex w-fit flex-row rounded-lg bg-neutral-300 p-0.5 pr-2 text-xs"
 							>
-								<OptiTrackNot class="h-4 p-0" />
+								<CircleDashed class="h-4 p-0" />
 							</div>
 						{/if}
 					</div>

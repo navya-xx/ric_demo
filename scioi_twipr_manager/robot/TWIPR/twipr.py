@@ -52,6 +52,8 @@ class TWIPR:
         
         self.communication.wifi.addCommand(identifier='getJoystickState', callback=self.getJoystickState,
                                            arguments=['state'], description='')
+        self.communication.wifi.addCommand(identifier='getTargetPosition', callback=self.getTargetPosition,
+                                           arguments=['pos_ref'], description='')
 
         # General parameters
         self.Ts = 0.1
@@ -62,6 +64,7 @@ class TWIPR:
         self.rot = np.array([0.0, 0.0, 0.0])
         self.obstacles = {}
         self.integral = [0.0, 0.0]
+        self.u_prev = None
 
         # Control parameters
         self.K_i = 0
@@ -70,7 +73,7 @@ class TWIPR:
         self.b0_f = self.robot_settings['v_gain_static_f']
         self.b0_b = self.robot_settings['v_gain_static_b']
         self.c0 = self.robot_settings['psi_dot_gain_static']
-        self.pos_ref = self.robot_settings['pos_ref']
+        # self.pos_ref = self.robot_settings['pos_ref']
 
         # Kalman filter and measurements
         self.Q_kalman = np.array([[0.00075877, 0],
@@ -86,6 +89,10 @@ class TWIPR:
         self.flag_include_integral = 1
         self.flag_pose = 0
         self.joystick_state = False
+
+        self.consensus_counter = 0
+
+        self.consensus_counter = 0
 
     def testCommand(self, a: float, b: float):
         print(f"The sum is {a+b}")
@@ -118,7 +125,7 @@ class TWIPR:
     def start(self):
         self.board.start()
         self.communication.start()
-        self.control.start()
+        # self.control.start()
         self.control.setStateFeedbackGain(self.robot_settings['balancing_gain'])
         print("START TWIPR ...")
 
@@ -130,6 +137,7 @@ class TWIPR:
         # TODO: This is just for testing purposes. This should be divided somewhere else. Also the update time should
         #  be fixed and not by a time.sleep
         while True:
+
             self._update()
 
             # Update state
@@ -143,22 +151,42 @@ class TWIPR:
                 u[1] = np.clip(u[1], -0.02, 0.02)
                 u_safe = np.asarray(self._calcSafeInput(u))
                 #u_safe = u_safe + 0.1*(u-u_safe)
-                if (np.abs(u_safe[0]) > 0.04 and np.abs(u[0]) < 0.04) or (np.abs(u_safe[1]) > 0.04 and np.abs(u[1]) < 0.04):
-                    u_safe = [0, 0]
-                #u_safe[0] = np.clip(u_safe[0], -0.05, 0.05)
-                #u_safe[1] = np.clip(u_safe[1], -0.05, 0.05)
-                self.control.setInput([-u_safe[0] - self.flag_include_integral*self.integral[0] + self.u_offset[0],
+                """if (np.abs(u_safe[0]) > 0.04) or (np.abs(u_safe[1]) > 0.04) or np.abs(u_safe[0]-u_safe[1]) > 0.04:
+                    u_safe = [0, 0]"""
+
+                if self.u_prev is not None:
+                    if np.abs(u_safe[0] - self.u_prev[0]) > 0.06 or np.abs(u_safe[1] - self.u_prev[1]) > 0.06:
+                        u_safe[0] = float(self.u_prev[0] + np.sign(u_safe[0]-self.u_prev[0])*0.06)
+                        u_safe[1] = float(self.u_prev[1] + np.sign(u_safe[1] - self.u_prev[1]) * 0.06)
+
+                # print(f"{self.control.mode} -- {self.control.mode.TWIPR_CONTROL_MODE_BALANCING}")
+
+                if self.control.mode == self.control.mode.TWIPR_CONTROL_MODE_BALANCING:
+                    if self.consensus_counter == 50:
+                        print("Run Consensus part")
+                        self.control.setInput([-u_safe[0] - self.flag_include_integral*self.integral[0] + self.u_offset[0],
                                     -u_safe[1] - self.flag_include_integral*self.integral[1] + self.u_offset[1]])
+                    else:
+                        print("Wait for consensus counter %d" % self.consensus_counter)
+                        self.consensus_counter += 1
+                        self.control.setInput([self.u_offset[0], self.u_offset[1]])
+                elif self.control.mode == self.control.mode.TWIPR_CONTROL_MODE_OFF:
+                    # print(self.control.mode_ll)
+                    self.consensus_counter = 0
 
-            #self.control.setInput([-u[0] + self.u_offset[0], -u[1] + self.u_offset[1]])
-            #self.control.setInput([0.0044, 0.0044])
-            #self.control.setInput([0.01 + self.u_offset[0], 0.01 + self.u_offset[1]])
-            #print(self.estimation.getSample().state.v)
-            #self.control.setInput([0.03 + self.u_offset[0], -0.03 + self.u_offset[1]])
-            #print(self.estimation.getSample().state.psi_dot)
+                #self.control.setInput([-u[0] + self.u_offset[0], -u[1] + self.u_offset[1]])
+                #self.control.setInput([0.0044, 0.0044])
+                #self.control.setInput([0.01 + self.u_offset[0], 0.01 + self.u_offset[1]])
+                #print(self.estimation.getSample().state.v)
+                #self.control.setInput([0.03 + self.u_offset[0], -0.03 + self.u_offset[1]])
+                #print(self.estimation.getSample().state.psi_dot)
 
-            #print(f"pos: {self.pos}")
-            #print(u_safe)
+                #print(f"pos: {self.pos}")
+                #print(u_safe)
+
+                self.u_prev = u_safe
+
+
 
             time.sleep(self.Ts)
 
@@ -188,7 +216,7 @@ class TWIPR:
 
         sample.consensus.target_pos_ref_x = self.pos_ref[0].item()
         sample.consensus.target_pos_ref_y = self.pos_ref[1].item()
-        sample.consensus.dist_from_ref = np.linalg.norm(self.pos_ref - self.pos)
+        sample.consensus.dist_from_ref = float(np.linalg.norm(self.pos_ref - self.pos))
 
         return sample
 
@@ -252,7 +280,7 @@ class TWIPR:
         else:
             b0 = self.b0_b
 
-        pole = 1.5
+        pole = 2
         #c0 = 1/1.1**2*a1/b0
         #c1 = (2/1.1*a1-1)/b0
         c0 = pole**2*a1/(2*b0)

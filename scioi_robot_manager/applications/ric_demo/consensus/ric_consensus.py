@@ -413,16 +413,6 @@ class Consensus:
 
         self.implement_wmac = implement_wmac
 
-        if (implement_wmac):
-            self.rng = np.random.default_rng()
-            # self.adj_graph = np.array([
-            #                 [1, 0, 1, 0, 1],
-            #                 [1, 1, 0, 1, 1],
-            #                 [0, 0, 1, 0, 1],
-            #                 [1, 1, 0, 1, 0],
-            #                 [0, 1, 1, 0, 1]
-            #                 ])
-
         self.thread_running = False
 
         self.optitrack = optitrack
@@ -482,18 +472,26 @@ class Consensus:
 
     def generate_WMAC_weights(self, N):
         # fully connected network
-        WMAC_weights = self.rng.uniform(0, 1, [N,])
-        WMAC_weights /= np.sum(WMAC_weights, axis=1)
+        WMAC_weights = np.random.uniform(0, 1, [N,])
+        WMAC_weights /= np.sum(WMAC_weights)
         return WMAC_weights
     
     def calcCentroid_WMAC(self):
-        w = self.generate_WMAC_weights(len(self.agents))
-        x = 0; y = 0
-        for key, agent_id in enumerate(self.agents.keys()):
-            agent = self.agents[agent_id]
-            x += w[key] * (agent.state['x'] - agent.formation_ref['x'])
-            y += w[key] * (agent.state['y'] - agent.formation_ref['y'])
-        return np.array([x, y])
+        centroid_dict = {}
+        for agent_id in self.agents.keys():
+            w = self.generate_WMAC_weights(len(self.agents))
+            x = 0; y = 0
+
+            for i, id in enumerate(self.agents.keys()):
+                agent = self.agents[id]
+                if 'x' not in agent.state:
+                    agent.state['x'] = 0
+                if 'y' not in agent.state:
+                    agent.state['y'] = 0
+                x += w[i] * (agent.state['x'] - agent.formation_ref['x'])
+                y += w[i] * (agent.state['y'] - agent.formation_ref['y'])
+            centroid_dict[agent_id] = np.array([x, y])
+        return centroid_dict
 
     def calcCentroid(self):
         if self.counter_centroid_comp % self.comp_centroid_every == 0:
@@ -653,12 +651,14 @@ class Consensus:
             id_order[idx] = i
             idx += 1
         idx = 0
-        for agent_id, agent in self.agents.items():
-            agent.formation_ref['x'] = pos_list[id_order[idx]][0]
-            agent.formation_ref['y'] = pos_list[id_order[idx]][1]
-            agent.formation_ref['psi'] = pos_list[id_order[idx]][2]
-            idx += 1
-
+        try:
+            for agent_id, agent in self.agents.items():
+                agent.formation_ref['x'] = pos_list[id_order[idx]][0]
+                agent.formation_ref['y'] = pos_list[id_order[idx]][1]
+                agent.formation_ref['psi'] = pos_list[id_order[idx]][2]
+                idx += 1
+        except Exception as e:
+            print(e)
 
     def formation(self, formation_type='circle', *args, **kwargs):
         num_of_agents = len(self.agents)
@@ -668,13 +668,16 @@ class Consensus:
         elif formation_type == 'line':
             self.line_formation(*args, **kwargs)
 
+        elif formation_type == 'star':
+            self.star_formation(*args, **kwargs)
+
     def _threadFunc(self):
-        print('test_thread')
+        # print('test_thread')
         # time.sleep(5)
         if self.is_formation_control:
             idx = 1
             self.formation(formation_type=self.formation_type, idx=idx, radius=self.formation_radius, spacing=self.formation_spacing)
-            self.add_agents_as_obstacles()
+            # self.add_agents_as_obstacles()
         else:
             if 'twipr1' in self.agents:
                 self.agents['twipr1'].formation_ref = {'x':0.2967906892299652, 'y': -0.25703999400138855, 'psi': 0}

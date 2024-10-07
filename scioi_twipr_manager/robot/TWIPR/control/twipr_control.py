@@ -144,6 +144,8 @@ class TWIPR_Control:
                 logger.warning(f"Value of {mode} is not a valid control mode")
                 return
 
+        self.mode = mode
+
         if mode == TWIPR_Control_Mode.TWIPR_CONTROL_MODE_OFF:
             self._setControlMode_LL(TWIPR_Control_Mode_LL.TWIPR_CONTROL_MODE_LL_OFF)
         elif mode == TWIPR_Control_Mode.TWIPR_CONTROL_MODE_BALANCING:
@@ -200,6 +202,7 @@ class TWIPR_Control:
 
     # ------------------------------------------------------------------------------------------------------------------
     def _onSample(self, sample):
+        print(f"Value from _onSample = {sample['control']['mode']}")
         self.status_ll = TWIPR_Control_Status_LL(sample['control']['status'])
         self.mode_ll = TWIPR_Control_Mode_LL(sample['control']['mode'])
         self.input.input = 0  # TODO
