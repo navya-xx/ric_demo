@@ -5,6 +5,7 @@ from core.devices.device import Device
 from robots.twipr.twipr import TWIPR
 from extensions.optitrack.optitrack import OptiTrack
 from utils.logging import Logger
+from applications.ric_demo.simulation.src.twipr_data import TWIPR_Control_Mode
 
 logger = Logger('Robots')
 logger.setLevel('INFO')
@@ -70,7 +71,7 @@ class TWIPR_Manager:
         print("Emergency Stop!")
         for robot in self.robots.values():
             # self.setRobotControlMode(robot_id, "off")
-            robot.setControlMode(0)
+            robot.setControlMode(TWIPR_Control_Mode.TWIPR_CONTROL_MODE_OFF)
 
     # ------------------------------------------------------------------------------------------------------------------
     def setRobotControlMode(self, robot, mode):

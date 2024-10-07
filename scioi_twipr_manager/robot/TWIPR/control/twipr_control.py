@@ -202,7 +202,6 @@ class TWIPR_Control:
 
     # ------------------------------------------------------------------------------------------------------------------
     def _onSample(self, sample):
-        print(f"Value from _onSample = {sample['control']['mode']}")
         self.status_ll = TWIPR_Control_Status_LL(sample['control']['status'])
         self.mode_ll = TWIPR_Control_Mode_LL(sample['control']['mode'])
         self.input.input = 0  # TODO

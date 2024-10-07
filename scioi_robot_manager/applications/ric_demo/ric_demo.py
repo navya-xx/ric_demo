@@ -161,8 +161,8 @@ class RIC_Demo:
                     robot.sendObstacleInfo(obs_dict={'obstacles': self.obs_dict})
 
                     # TARGET POS
-                    centroid_x = np.clip(current_centroid[robot_id][0], -0.2, 0.2)
-                    centroid_y = np.clip(current_centroid[robot_id][1], -0.5, 0.5)
+                    centroid_x = np.clip(current_centroid[robot_id][0], -0.5, 0.5)
+                    centroid_y = np.clip(current_centroid[robot_id][1], -2.0, 2.0)
                     pos_x = self.consensus.agents[robot_id].formation_ref['x'] + centroid_x
                     pos_y = self.consensus.agents[robot_id].formation_ref['y'] + centroid_y
                     robot_target_pos = {
