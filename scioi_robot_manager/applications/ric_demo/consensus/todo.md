@@ -12,3 +12,6 @@
 - Set boundary for centroid location based on the stage area
 - Conditional push - Push robots that are not moving while the target is more than 20cm away
 - Clip the derivative of u_safe
+
+## Debugging
+- Emergency stop - stopped working -- Removed control thread from twipr -- control mode off from GUI works, but emergency stop doesnt
