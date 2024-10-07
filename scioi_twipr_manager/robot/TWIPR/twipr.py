@@ -49,6 +49,9 @@ class TWIPR:
                                            arguments=['pos'], description='')
         self.communication.wifi.addCommand(identifier='getObstacles', callback=self.getObstacles,
                                            arguments=['obstacles'], description='')
+        
+        self.communication.wifi.addCommand(identifier='getJoystickState', callback=self.getJoystickState,
+                                           arguments=['state'], description='')
 
         # General parameters
         self.Ts = 0.1
@@ -82,6 +85,7 @@ class TWIPR:
         # Flags
         self.flag_include_integral = 1
         self.flag_pose = 0
+        self.joystick_state = False
 
     def testCommand(self, a: float, b: float):
         print(f"The sum is {a+b}")
@@ -99,6 +103,9 @@ class TWIPR:
 
     def getObstacles(self, obstacles):
         self.obstacles = obstacles
+
+    def getJoystickState(self, state):
+        self.joystick_state = state
 
     def getTargetPosition(self, pos_ref):
         self.pos_ref = np.array([pos_ref[0], pos_ref[1]])
@@ -130,17 +137,18 @@ class TWIPR:
             self.simpleEst()
 
             # Calculate control input
-            u = np.asarray(self._calcFormCtrlInput(pos_ref=self.pos_ref))
-            u[0] = np.clip(u[0], -0.02, 0.02)
-            u[1] = np.clip(u[1], -0.02, 0.02)
-            u_safe = np.asarray(self._calcSafeInput(u))
-            #u_safe = u_safe + 0.1*(u-u_safe)
-            if (np.abs(u_safe[0]) > 0.04 and np.abs(u[0]) < 0.04) or (np.abs(u_safe[1]) > 0.04 and np.abs(u[1]) < 0.04):
-                u_safe = [0, 0]
-            #u_safe[0] = np.clip(u_safe[0], -0.05, 0.05)
-            #u_safe[1] = np.clip(u_safe[1], -0.05, 0.05)
-            self.control.setInput([-u_safe[0] - self.flag_include_integral*self.integral[0] + self.u_offset[0],
-                                   -u_safe[1] - self.flag_include_integral*self.integral[1] + self.u_offset[1]])
+            if (self.joystick_state is False):
+                u = np.asarray(self._calcFormCtrlInput(pos_ref=self.pos_ref))
+                u[0] = np.clip(u[0], -0.02, 0.02)
+                u[1] = np.clip(u[1], -0.02, 0.02)
+                u_safe = np.asarray(self._calcSafeInput(u))
+                #u_safe = u_safe + 0.1*(u-u_safe)
+                if (np.abs(u_safe[0]) > 0.04 and np.abs(u[0]) < 0.04) or (np.abs(u_safe[1]) > 0.04 and np.abs(u[1]) < 0.04):
+                    u_safe = [0, 0]
+                #u_safe[0] = np.clip(u_safe[0], -0.05, 0.05)
+                #u_safe[1] = np.clip(u_safe[1], -0.05, 0.05)
+                self.control.setInput([-u_safe[0] - self.flag_include_integral*self.integral[0] + self.u_offset[0],
+                                    -u_safe[1] - self.flag_include_integral*self.integral[1] + self.u_offset[1]])
 
             #self.control.setInput([-u[0] + self.u_offset[0], -u[1] + self.u_offset[1]])
             #self.control.setInput([0.0044, 0.0044])

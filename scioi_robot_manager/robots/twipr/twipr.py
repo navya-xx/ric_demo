@@ -80,3 +80,6 @@ class TWIPR:
 
     def sendObstacleInfo(self, obs_dict: dict):
         self.device.command(command='getObstacles', data=obs_dict)
+
+    def sendJoystickOn(self, joystick_active: bool):
+        self.device.command(command='getJoystickState', data={'state':joystick_active})

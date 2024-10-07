@@ -86,6 +86,7 @@ class RIC_Demo_RobotManager:
             for assignment in self.joystick_assignments.values():
                 input = self._calculateInputValues(assignment['joystick'])
                 assignment['robot'].setInput(input)
+                assignment['robot'].setJoystickOn(True)
             time.sleep(0.1)
 
     # ------------------------------------------------------------------------------------------------------------------

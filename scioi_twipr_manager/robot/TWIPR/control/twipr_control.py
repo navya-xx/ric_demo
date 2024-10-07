@@ -125,7 +125,7 @@ class TWIPR_Control:
     def init(self):
         ...
 
-    def start(self):
+    def joystart(self):
         self._thread.start()
 
     def loadConfig(self, name):
