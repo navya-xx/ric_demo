@@ -481,8 +481,13 @@ class Consensus:
         for agent_id in self.agents.keys():
             w = self.generate_WMAC_weights(len(self.agents))
             x = 0; y = 0
+
             for i, id in enumerate(self.agents.keys()):
                 agent = self.agents[id]
+                if 'x' not in agent.state:
+                    agent.state['x'] = 0
+                if 'y' not in agent.state:
+                    agent.state['y'] = 0
                 x += w[i] * (agent.state['x'] - agent.formation_ref['x'])
                 y += w[i] * (agent.state['y'] - agent.formation_ref['y'])
             centroid_dict[agent_id] = np.array([x, y])
@@ -646,12 +651,14 @@ class Consensus:
             id_order[idx] = i
             idx += 1
         idx = 0
-        for agent_id, agent in self.agents.items():
-            agent.formation_ref['x'] = pos_list[id_order[idx]][0]
-            agent.formation_ref['y'] = pos_list[id_order[idx]][1]
-            agent.formation_ref['psi'] = pos_list[id_order[idx]][2]
-            idx += 1
-
+        try:
+            for agent_id, agent in self.agents.items():
+                agent.formation_ref['x'] = pos_list[id_order[idx]][0]
+                agent.formation_ref['y'] = pos_list[id_order[idx]][1]
+                agent.formation_ref['psi'] = pos_list[id_order[idx]][2]
+                idx += 1
+        except Exception as e:
+            print(e)
 
     def formation(self, formation_type='circle', *args, **kwargs):
         num_of_agents = len(self.agents)

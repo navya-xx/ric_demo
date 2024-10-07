@@ -2,6 +2,8 @@ import dataclasses
 import logging
 import time
 from typing import Union
+
+import numpy as np
 import orjson
 
 from cm4_core.communication.protocol import Protocol, Message
@@ -76,9 +78,13 @@ class TCP_JSON_Protocol(Protocol):
             if f not in msg.meta:
                 logging.error(f'Meta data {f} missing. Message not encoded.')
                 return
+        def default(obj):
+            if isinstance(obj, np.float64):
+                return float(obj)
+            raise TypeError
 
         # Check if it correctly set up for a command
-        data = orjson.dumps(msg)
+        data = orjson.dumps(msg, default=default)
 
         return data
 
