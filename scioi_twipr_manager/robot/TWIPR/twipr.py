@@ -109,6 +109,7 @@ class TWIPR:
             self.flag_pose = 1
 
     def getObstacles(self, obstacles):
+        obstacles.pop(self.robot_settings['id'])
         self.obstacles = obstacles
 
     def getJoystickState(self, state):
@@ -145,7 +146,7 @@ class TWIPR:
             self.simpleEst()
 
             # Calculate control input
-            if (self.joystick_state is False):
+            if self.joystick_state is False:
                 u = np.asarray(self._calcFormCtrlInput(pos_ref=self.pos_ref))
                 u[0] = np.clip(u[0], -0.02, 0.02)
                 u[1] = np.clip(u[1], -0.02, 0.02)
@@ -163,16 +164,16 @@ class TWIPR:
 
                 if self.control.mode == self.control.mode.TWIPR_CONTROL_MODE_BALANCING:
                     if self.consensus_counter == 50:
-                        print("Run Consensus part")
-                        self.control.setInput([-u_safe[0] - self.flag_include_integral*self.integral[0] + self.u_offset[0],
-                                    -u_safe[1] - self.flag_include_integral*self.integral[1] + self.u_offset[1]])
+                        self.control.setInput([-u_safe[0] - self.flag_include_integral*self.integral[0],
+                                    -u_safe[1] - self.flag_include_integral*self.integral[1]])
                     else:
-                        print("Wait for consensus counter %d" % self.consensus_counter)
                         self.consensus_counter += 1
-                        self.control.setInput([self.u_offset[0], self.u_offset[1]])
+                        self.control.setInput([0, 0])
                 elif self.control.mode == self.control.mode.TWIPR_CONTROL_MODE_OFF:
                     # print(self.control.mode_ll)
                     self.consensus_counter = 0
+            #else:
+                #self.control.setInput([self.u_offset[0],  self.u_offset[1]])
 
                 #self.control.setInput([-u[0] + self.u_offset[0], -u[1] + self.u_offset[1]])
                 #self.control.setInput([0.0044, 0.0044])
@@ -337,6 +338,8 @@ class TWIPR:
                 if obstacle == self.robot_settings['id']:
                     continue
                 q = np.asarray(self.obstacles[obstacle]['pos']).T
+                if (q==p).all():
+                    continue
 
                 U += 2/((p-q).T@(p-q))
                 r += 4*(p-q) / (((p-q).T@(p-q))**2)

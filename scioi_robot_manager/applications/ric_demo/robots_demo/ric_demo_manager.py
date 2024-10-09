@@ -82,11 +82,10 @@ class RIC_Demo_RobotManager:
     def _threadFunction(self):
 
         while True:
-
             for assignment in self.joystick_assignments.values():
                 input = self._calculateInputValues(assignment['joystick'])
                 assignment['robot'].setInput(input)
-                assignment['robot'].setJoystickOn(True)
+                assignment['robot'].sendJoystickOn(True)
             time.sleep(0.1)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -132,6 +131,9 @@ class RIC_Demo_RobotManager:
         # Check if there is a joystick assignment, if not, return
         if joystick.uuid not in self.joystick_assignments.keys():
             return
+
+        robot = self.joystick_assignments[joystick.uuid]['robot']
+        robot.sendJoystickOn(False)
 
         logger.info(
             f"Remove Joystick assignment ({joystick.uuid} -> {self.joystick_assignments[joystick.uuid]['robot'].id})")

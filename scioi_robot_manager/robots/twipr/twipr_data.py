@@ -15,7 +15,7 @@ twipr_wifi_sample = {
         'id': 'abcdef'  # str
     },
     'control': {
-        'status': 'normal',  # str
+        'status': 0,  # int
         'mode': 'velocity',  # str [X]
         'configuration': "default",  # str
         'u_ext': [0.0, 0.0],  # list[float] [-] [X]

@@ -9,6 +9,8 @@ from control_board.robot_control_board import RobotControl_Board
 from robot.TWIPR.communication.twipr_communication import TWIPR_Communication
 import robot.TWIPR.settings as settings
 import robot.TWIPR.control.serial_communication_control as serial_communication_control
+from robot.TWIPR.settings import readSettings
+
 
 logger = logging.getLogger('control')
 logger.setLevel('INFO')
@@ -121,6 +123,9 @@ class TWIPR_Control:
 
         self._thread = threading.Thread(target=self._threadFunction)
 
+        self.robot_settings = readSettings()
+        self.u_offset = self.robot_settings['u_offset']
+
     # ==================================================================================================================
     def init(self):
         ...
@@ -156,7 +161,7 @@ class TWIPR_Control:
         if not isinstance(input, list):
             logger.error("Wrong Input Datatype")
             return
-        self._setControlInput_LL(input)
+        self._setControlInput_LL([input[0]+self.u_offset[0], input[1]+self.u_offset[1]])
 
     # ------------------------------------------------------------------------------------------------------------------
     def setSpeed(self, v, psi_dot):
