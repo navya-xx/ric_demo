@@ -25,32 +25,8 @@
 	export let bots = []
 
     export let keys = ['time', 'consensus error'];
-	export let units = ['s', ' '];
-	export let ranges = [
-		[null, null],
-		[-3, 3],
-	];
-	const colors = [
-		'black',
-		'black',
-		'red',
-		'green',
-		'purple',
-		'orange',
-		'pink',
-		'brown',
-		'cyan',
-		'magenta',
-		'lightblue',
-		'lightgreen',
-		'lightyellow',
-		'lightpurple',
-		'lightorange',
-		'lightpink',
-		'lightbrown',
-		'lightcyan',
-		'lightmagenta'
-	];
+
+
 
 
 	function onResize(entry: ResizeObserverEntry) {
@@ -67,7 +43,7 @@
 						auto: false,
 						time: true,
 					},
-					"C": { auto: false, range: [-3, 3] }
+					"C": { auto: false, range: [-3, 100] }
 				};
 
 
@@ -139,11 +115,17 @@
 				}
 			}
 
+			// fill empty data with null
+			for (let i = 1; i < ndata.length; i++) {
+				if (ndata[i].length < ndata[0].length) {
+					ndata[i] = ndata[i].concat(new Array(ndata[0].length - ndata[i].length).fill(null));
+				}
+			}
 
 
 
             const currentTime = Date.now() / 1000;
-			console.log(data)
+			//console.log(data)
 		    plot.setData(data, false);
 
         }

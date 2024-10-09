@@ -131,14 +131,12 @@ export class WorkerStream {
 
                 const botData = data[bot];
 
-                if (!this.plotStreams[id][b]) {
-                    this.plotStreams[id][b] = [];
-                }
+
 
                 if (botData === undefined || botData.length === 0) {
                     continue;
                 }
-                if (time) {
+                if (time && b === 0) {
                     if (!this.plotStreams[id][0]) {
                         this.plotStreams[id][0] = [];
                     }
@@ -156,12 +154,12 @@ export class WorkerStream {
 
 
 
-                this.plotStreams[id][b].push(access(key, botData));
+                this.plotStreams[id][b+1].push(access(key, botData));
 
 
                 // use splice to keep buffer length
-                if (this.plotStreams[id][b].length > this.bufferSize) {
-                    this.plotStreams[id][b].splice(0, this.plotStreams[id][b].length - this.bufferSize);
+                if (this.plotStreams[id][b+1].length > this.bufferSize) {
+                    this.plotStreams[id][b+1].splice(0, this.plotStreams[id][b+1].length - this.bufferSize);
                 }
 
 
