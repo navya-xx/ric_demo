@@ -36,7 +36,25 @@
 	function startConsensus() {
 		const message = { type: "command", data: { command: "cs_star_1.0" } };
 		sendMessage(message);
+
+
 	}
+
+	let graphMode = localStorage.getItem("graph") || "fully_connected";
+
+	function toggleGraph(mode) {
+		graphMode = mode;
+		console.log("toggle graph", mode);
+		const message = { type: "command", data: { command: "set_metwork_graph_"+mode } };
+		// write consensus state to localstorage
+
+		localStorage.setItem("graph", mode);
+
+		sendMessage(message);
+
+
+	}
+
 
 	$: isActive = (i) => {
 		if (showActive) {
@@ -135,10 +153,27 @@
 	{/each}
 
 	<Button
-		class="w-full"
+		class="w-full my-3"
 		on:click={(e) => {
 			e.preventDefault();
 			startConsensus();
 		}}>Start Consensus</Button
 	>
+	{#if graphMode == "spanning_tree"}
+		<Button
+		class="w-full my-3"
+		on:click={(e) => {
+			e.preventDefault();
+			toggleGraph("fully_connected");
+		}}>Fully Connected</Button>
+	{:else}
+		<Button
+		class="w-full my-3"
+		on:click={(e) => {
+			e.preventDefault();
+			toggleGraph("spanning_tree");
+		}}>Spanning Tree</Button>
+	{/if}
+
+
 </nav>

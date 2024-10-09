@@ -25,6 +25,13 @@
 
 	export let locked = true;
 
+    let graphState = localStorage.getItem('graph') || 'fully_connected';
+    // listen to changes in loalstorage
+    window.addEventListener('storage', (e) => {
+        // get consensusState from localstorage
+        graphState = localStorage.getItem('graph') || 'fully_connected';
+    });
+
 	let gridController: GridController;
 
 	function addItem() {
@@ -120,6 +127,7 @@
                                     <Select.Item value="timeseries">Timeseries</Select.Item>
                                     <Select.Item value="terminal">Terminal</Select.Item>
                                     <Select.Item value="robotlist">Robot List</Select.Item>
+                                    <Select.Item value="graph">Graph Type</Select.Item>
                                 </Select.Content>
                             </Select.Root>
                         </div>
@@ -223,6 +231,20 @@
         <RobotList showActive={false}/>
     {:else if item.type === 'terminal'}
         <Terminal showInput={false}/>
+    {:else if item.type === 'graph'}
+        {#if graphState === 'fully_connected'}
+            <div class="flex h-full items-center justify-center font-semibold p-3">
+                <!-- fit image in containser -->
+                <img src="fully_connected.png" alt="Fully Connected Graph" class="object-contain h-full w-full" />
+
+            </div>
+        {:else}
+            <div class="flex h-full items-center justify-center font-semibold p-3">
+                <!-- fit image in containser -->
+                <img src="spanning_tree.png" alt="Partially Connected Graph" class="object-contain h-full w-full" />
+            </div>
+        {/if}
+
     {:else}
         <div class="bg-muted flex h-full items-center justify-center font-semibold">
             Select Datafield and Blocktype
