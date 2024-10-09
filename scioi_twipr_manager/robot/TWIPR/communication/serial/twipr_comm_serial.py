@@ -1,7 +1,7 @@
 import ctypes
 
-from cm4_core.communication.serial.serial_interface import Serial_Interface
-from cm4_core.utils.callbacks import Callback
+from cm4_core_old.communication.serial.serial_interface import Serial_Interface
+from cm4_core_old.utils.callbacks import Callback
 
 import robot.TWIPR.settings as settings
 import control_board.settings as rc_settings

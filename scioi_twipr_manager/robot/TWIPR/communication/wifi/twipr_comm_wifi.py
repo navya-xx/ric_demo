@@ -1,9 +1,9 @@
 # Sample
 import time
 
-from cm4_core.interface.data_link import Command
-from cm4_core.interface.wifi_interface import WIFI_Interface
-from cm4_core.utils.callbacks import Callback
+from cm4_core_old.interface.data_link import Command
+from cm4_core_old.interface.wifi_interface import WIFI_Interface
+from cm4_core_old.utils.callbacks import Callback
 
 
 class TWIPR_WIFI_Interface:

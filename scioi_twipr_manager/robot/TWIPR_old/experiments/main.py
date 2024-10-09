@@ -1,13 +1,13 @@
 import time
 import numpy as np
 
-from cm4_core.utils.json_utils import readJSON, writeJSON
+from cm4_core_old.utils.json_utils import readJSON, writeJSON
 
 
 from robot.TWIPR_old.experiments import SimpleTWIPR
 from robot.TWIPR_old.utils import transform_input_2d_3d, getSignal
 
-import cm4_core.utils.joystick.rpi_joystick as rpi_joystick
+import cm4_core_old.utils.joystick.rpi_joystick as rpi_joystick
 
 import matplotlib.pyplot as plt
 

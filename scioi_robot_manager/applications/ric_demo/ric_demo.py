@@ -77,7 +77,7 @@ class RIC_Demo:
         self.simulation.start()
         # time.sleep(5)
         # self._optitrack_thread.start()
-        time.sleep(1)
+        time.sleep(10)
         self._thread.start()
 
 

@@ -1,7 +1,7 @@
 import threading
 
-from cm4_core.interface.interface import WifiInterface
-from cm4_core.interface.data_link import DataLink
+from cm4_core_old.interface.interface import WifiInterface
+from cm4_core_old.interface.data_link import DataLink
 from control_board.rc_board import RobotControl_Device
 
 

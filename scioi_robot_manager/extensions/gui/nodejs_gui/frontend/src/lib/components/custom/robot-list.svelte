@@ -34,7 +34,7 @@
 	}
 
 	function startConsensus() {
-		const message = { type: "command", data: { command: "cs_star_0.8" } };
+		const message = { type: "command", data: { command: "cs_star_1.0" } };
 		sendMessage(message);
 	}
 

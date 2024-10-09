@@ -353,11 +353,12 @@ class TWIPR:
 
             delta_s = .4
             alpha = 1
-            h = 1 / U - 1/2*delta_s ** 2 + 1/U**2 * p_tilde_dot.T@r
-            lg_h = np.asarray([1/(U**2)*b0/a1*(np.asarray([np.cos(psi), np.sin(psi)]))@r,
-                               l*1/U**2 * c0/a1 * np.asarray([-np.sin(psi), np.cos(psi)]).T@r])
-            lambda_val = np.max([0, -(alpha*h + 1/(U**2)*p_dot.T@r + 2/(U**3)*((p_dot.T@r)*(p_tilde_dot@r)) +
-                                      1/(U**2)*(p_tilde_ddot.T@r + p_tilde_dot.T@r_dot))/(1/4*lg_h[0]**2 + lg_h[1]**2)])
+            beta = 1
+            h = 1 / U - 1/2*delta_s ** 2 + 1/U**2 * p_tilde_dot.T@r*beta
+            lg_h = np.asarray([1/(U**2)*b0/a1*(np.asarray([np.cos(psi), np.sin(psi)]))@r*beta,
+                               l*1/U**2 * c0/a1 * np.asarray([-np.sin(psi), np.cos(psi)]).T@r]*beta)
+            lambda_val = np.max([0, -(alpha*h + 1/(U**2)*p_dot.T@r + beta*2/(U**3)*((p_dot.T@r)*(p_tilde_dot@r)) +
+                                      beta*1/(U**2)*(p_tilde_ddot.T@r + p_tilde_dot.T@r_dot))/(1/4*lg_h[0]**2 + lg_h[1]**2)])
 
             u[0] = u[0] + 1/4*1/2 * lambda_val*lg_h[0] + 1/2 * lambda_val*lg_h[1]
             u[1] = u[1] + 1/4*1/2 * lambda_val*lg_h[0] - 1/2 * lambda_val*lg_h[1]
