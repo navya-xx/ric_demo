@@ -451,7 +451,7 @@ class Consensus:
         # self.circular_trajectory_counter = 0
 
         self.trajectory_follow = False
-        self.graph_type = "span"
+        self.graph_type = "full"
 
     def init(self):
         ...
