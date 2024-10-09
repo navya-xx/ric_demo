@@ -1,10 +1,10 @@
 import logging
 import time
 
-from archive.cm4_core_old2.communication.protocols import RawMessage
-from archive.cm4_core_old2.communication.serial.serial_device import Serial_Device
-from archive.cm4_core_old2.communication.wifi.tcp_device import TCP_Device
-from archive.cm4_core_old2.communication.wifi.protocols.tcp_json_protocol import TCP_JSONProtocol, TCP_JSONMessage
+from archive.cm4_core2.communication.protocols import RawMessage
+from archive.cm4_core2.communication.serial.serial_device import Serial_Device
+from archive.cm4_core2.communication.wifi.tcp_device import TCP_Device
+from archive.cm4_core2.communication.wifi.protocols.tcp_json_protocol import TCP_JSONProtocol, TCP_JSONMessage
 from archive.lndw_robot import messages as messages
 import board
 

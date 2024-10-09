@@ -1,6 +1,6 @@
 import ctypes
 
-from cm4_core_old.communication.i2c.i2c import I2C_Interface
+from cm4_core.communication.i2c.i2c import I2C_Interface
 from control_board.io_extension.registers import *
 from control_board.settings import IO_EXTENSION_I2C_ADDRESS
 

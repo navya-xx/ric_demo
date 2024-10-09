@@ -1,5 +1,5 @@
 import ctypes
-from archive.cm4_core_old2.communication.serial.protocols.uart_protocol import UART_Message
+from archive.cm4_core2.communication.serial.protocols.uart_protocol import UART_Message
 
 
 class UART_MSG_CORE_Write_Led(UART_Message):

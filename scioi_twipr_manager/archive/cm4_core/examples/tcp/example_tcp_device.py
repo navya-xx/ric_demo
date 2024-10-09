@@ -1,7 +1,7 @@
 import logging
 
-from archive.cm4_core_old2.communication.wifi.protocols.tcp_json_protocol import TCP_JSONProtocol, TCP_JSONMessage
-from archive.cm4_core_old2.communication.wifi.tcp_device import TCP_Device
+from archive.cm4_core2.communication.wifi.protocols.tcp_json_protocol import TCP_JSONProtocol, TCP_JSONMessage
+from archive.cm4_core2.communication.wifi.tcp_device import TCP_Device
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d  %(levelname)-8s  %(message)s',

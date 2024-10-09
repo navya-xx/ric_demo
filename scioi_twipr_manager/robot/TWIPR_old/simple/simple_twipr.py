@@ -14,8 +14,8 @@ import socket
 
 from robot.TWIPR_old.communication.twipr_comm_stm import TWIPR_Communication_STM32
 from robot.TWIPR_old.communication.twipr_comm_utils import reset_uart
-from cm4_core_old.utils.ctypes_utils import struct_to_dict
-import cm4_core_old.utils.teleplot as teleplot
+from cm4_core.utils.ctypes_utils import struct_to_dict
+import cm4_core.utils.teleplot as teleplot
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d %(levelname)s %(message)s', datefmt='%Y-%m-%d,%H:%M:%S',
                     level='INFO')

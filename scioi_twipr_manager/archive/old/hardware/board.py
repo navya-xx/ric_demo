@@ -1,4 +1,4 @@
-import archive.cm4_core_old2.hardware.interfaces as interfaces
+import archive.cm4_core2.hardware.interfaces as interfaces
 
 
 class Board:

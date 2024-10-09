@@ -2,7 +2,7 @@ import logging
 import time
 import numpy as np
 
-import archive.cm4_core_old2.communication.wifi.core.tcp_socket as tcp
+import archive.cm4_core2.communication.wifi.core.tcp_socket as tcp
 
 logging.basicConfig(level=logging.INFO)
 

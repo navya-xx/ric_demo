@@ -6,7 +6,7 @@ import time
 
 from robot.TWIPR.settings import *
 from robot.TWIPR.communication.twipr_comm_stm import *
-import cm4_core_old.utils as utils
+import cm4_core.utils as utils
 
 logging.Formatter(
     fmt='%(asctime)s.%(msecs)03d',

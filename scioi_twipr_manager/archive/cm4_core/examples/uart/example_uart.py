@@ -1,7 +1,7 @@
 import logging
 import time
 
-from archive.cm4_core_old2.communication.serial.core.serial_socket import UART_Socket
+from archive.cm4_core2.communication.serial.core.serial_socket import UART_Socket
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d  %(levelname)-8s  %(message)s',

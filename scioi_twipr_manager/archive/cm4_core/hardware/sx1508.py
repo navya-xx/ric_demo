@@ -1,7 +1,7 @@
 import enum
 
 import board
-from archive import cm4_core_old2 as bt
+from archive import cm4_core2 as bt
 
 RegInputDisable = 0x00
 RegPullUp = 0x03

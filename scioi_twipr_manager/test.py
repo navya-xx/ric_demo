@@ -1,6 +1,6 @@
 import time
 
-from cm4_core_old.communication.i2c.i2c import I2C_Interface
+from cm4_core.communication.i2c.i2c import I2C_Interface
 from control_board.io_extension.io_extension import RobotControl_IO_Extension
 
 

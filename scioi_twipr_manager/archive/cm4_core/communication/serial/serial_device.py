@@ -1,8 +1,8 @@
 import queue
 import threading
 
-from archive.cm4_core_old2.communication.serial.core.serial_socket import UART_Socket
-from archive.cm4_core_old2.communication.serial.protocols.uart_protocol import UART_Protocol
+from archive.cm4_core2.communication.serial.core.serial_socket import UART_Socket
+from archive.cm4_core2.communication.serial.protocols.uart_protocol import UART_Protocol
 
 
 class Serial_Device:

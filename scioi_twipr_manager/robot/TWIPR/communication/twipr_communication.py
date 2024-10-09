@@ -1,7 +1,7 @@
 import numpy as np
 
-from cm4_core_old.utils import teleplot
-from cm4_core_old.utils.callbacks import Callback
+from cm4_core.utils import teleplot
+from cm4_core.utils.callbacks import Callback
 from control_board.robot_control_board import RobotControl_Board
 from robot.TWIPR.communication.serial.twipr_comm_serial import TWIPR_Serial_Interface
 from robot.TWIPR.communication.spi.twipr_comm_spi import TWIPR_SPI_Interface

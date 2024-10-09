@@ -1,8 +1,8 @@
 import sys
 import time
 
-from archive import cm4_core_old2 as utils
-from archive.cm4_core_old2.hardware import UART
+from archive import cm4_core2 as utils
+from archive.cm4_core2.hardware import UART
 
 
 def print_data(data):

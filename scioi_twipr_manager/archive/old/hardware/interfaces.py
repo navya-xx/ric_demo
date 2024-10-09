@@ -4,7 +4,7 @@ import os
 # import cobs.cobs as cobs
 import threading
 
-from archive import cm4_core_old2 as utils
+from archive import cm4_core2 as utils
 
 
 class UART:

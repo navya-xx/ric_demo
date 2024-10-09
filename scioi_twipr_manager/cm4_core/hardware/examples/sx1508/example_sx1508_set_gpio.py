@@ -1,4 +1,4 @@
-from archive.cm4_core_old2.hardware.sx1508 import SX1508, SX1508_GPIO_MODE
+from archive.cm4_core2.hardware.sx1508 import SX1508, SX1508_GPIO_MODE
 import time
 
 

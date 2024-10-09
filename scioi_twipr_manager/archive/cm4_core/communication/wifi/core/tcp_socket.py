@@ -19,7 +19,7 @@ import time
 from enum import Enum
 import cobs.cobs as cobs
 
-from archive.cm4_core_old2.utils.time import time_ms
+from archive.cm4_core2.utils.time import time_ms
 
 MAX_SOCKET_READ = 8192
 

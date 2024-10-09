@@ -1,8 +1,8 @@
 import logging
 import time
 
-from archive.cm4_core_old2.communication.serial.protocols.uart_protocol import UART_Message
-from archive.cm4_core_old2.communication.serial.serial_device import Serial_Device
+from archive.cm4_core2.communication.serial.protocols.uart_protocol import UART_Message
+from archive.cm4_core2.communication.serial.serial_device import Serial_Device
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d  %(levelname)-8s  %(message)s',

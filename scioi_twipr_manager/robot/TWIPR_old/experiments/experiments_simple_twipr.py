@@ -8,7 +8,7 @@ import logging
 
 from robot.TWIPR.communication.twipr_comm_stm import TWIPR_Communication_STM32
 from robot.TWIPR.communication.twipr_comm_utils import reset_uart
-from cm4_core_old.utils.ctypes_utils import struct_to_dict
+from cm4_core.utils.ctypes_utils import struct_to_dict
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d %(levelname)s %(message)s', datefmt='%Y-%m-%d,%H:%M:%S',
                     level='INFO')

@@ -1,6 +1,6 @@
 import os
 
-from cm4_core_old.utils.json_utils import writeJSON, readJSON
+from cm4_core.utils.json_utils import writeJSON, readJSON
 
 settings_file_path = os.path.expanduser('~/robot_settings.json')
 

@@ -16,8 +16,8 @@
 #         time.sleep(0.25)
 import time
 
-from cm4_core_old.utils.joystick import rpi_joystick
-from cm4_core_old.utils.stm32.stm32 import stm32_reset
+from cm4_core.utils.joystick import rpi_joystick
+from cm4_core.utils.stm32.stm32 import stm32_reset
 from robot.TankRobot.VisionRobot import VisionRobot
 
 

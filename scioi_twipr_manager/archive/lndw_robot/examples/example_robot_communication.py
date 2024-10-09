@@ -1,7 +1,7 @@
 import logging
 import time
 
-from archive.cm4_core_old2.utils.stm32_flash.reset import reset
+from archive.cm4_core2.utils.stm32_flash.reset import reset
 from archive.lndw_robot.robot import LNDW_Robot
 
 logging.basicConfig(

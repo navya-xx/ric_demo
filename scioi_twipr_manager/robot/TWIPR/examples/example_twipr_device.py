@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 
-from cm4_core_old.utils.joystick import rpi_joystick
+from cm4_core.utils.joystick import rpi_joystick
 from robot.TWIPR import settings
 from robot.TWIPR.control.twipr_control import TWIPR_Control_Sample, TWIPR_Control_Mode
 from robot.TWIPR.logging.twipr_sample import TWIPR_Sample
@@ -14,7 +14,7 @@ import logging
 
 from RPi import GPIO
 
-from cm4_core_old.utils.stm32.stm32 import stm32_reset
+from cm4_core.utils.stm32.stm32 import stm32_reset
 
 from robot.TWIPR.communication.wifi.sample import twipr_wifi_sample
 

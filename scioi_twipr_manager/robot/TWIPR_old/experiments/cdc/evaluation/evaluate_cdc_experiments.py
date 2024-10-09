@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from cm4_core_old.utils.json_utils import readJSON
+from cm4_core.utils.json_utils import readJSON
 from robot.TWIPR_old.utils import getSignal
 
 Ts = 0.01

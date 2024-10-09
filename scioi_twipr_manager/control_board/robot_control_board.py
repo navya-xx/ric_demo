@@ -1,11 +1,11 @@
-from cm4_core_old.communication.i2c.i2c import I2C_Interface
-from cm4_core_old.communication.spi.spi import SPI_Interface
-from cm4_core_old.interface.wifi_interface import WIFI_Interface
-from cm4_core_old.interface.data_link import Command
-from cm4_core_old.utils.debug import debug_print
-from cm4_core_old.hardware.sx1508 import SX1508, SX1508_GPIO_MODE
+from cm4_core.communication.i2c.i2c import I2C_Interface
+from cm4_core.communication.spi.spi import SPI_Interface
+from cm4_core.interface.wifi_interface import WIFI_Interface
+from cm4_core.interface.data_link import Command
+from cm4_core.utils.debug import debug_print
+from cm4_core.hardware.sx1508 import SX1508, SX1508_GPIO_MODE
 import control_board.settings as board_parameters
-from cm4_core_old.communication.serial.serial_interface import Serial_Interface
+from cm4_core.communication.serial.serial_interface import Serial_Interface
 from control_board.board_utils import reset_uart
 from control_board.io_extension.io_extension import RobotControl_IO_Extension
 

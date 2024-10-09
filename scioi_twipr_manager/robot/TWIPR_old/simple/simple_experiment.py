@@ -3,7 +3,7 @@ sys.path.append("/home/lehmann/software/")
 
 import time
 from robot.TWIPR_old.simple.simple_twipr import SimpleTWIPR
-import cm4_core_old.utils.joystick.rpi_joystick as rpi_joystick
+import cm4_core.utils.joystick.rpi_joystick as rpi_joystick
 
 
 

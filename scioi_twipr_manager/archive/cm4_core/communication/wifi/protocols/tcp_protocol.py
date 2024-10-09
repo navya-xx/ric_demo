@@ -1,8 +1,8 @@
 from typing import Union
 import logging
 
-from archive.cm4_core_old2.communication.protocols import Protocol, RawMessage
-from archive.cm4_core_old2.utils.bytes import bytearray_to_string
+from archive.cm4_core2.communication.protocols import Protocol, RawMessage
+from archive.cm4_core2.utils.bytes import bytearray_to_string
 
 
 class TCP_Message(RawMessage):

@@ -6,11 +6,11 @@ import ctypes
 from _ctypes import _SimpleCData
 
 import robot.TWIPR.settings as parameters
-from cm4_core_old import utils
-from cm4_core_old.communication.serial.serial_connection import SerialConnection
+from cm4_core import utils
+from cm4_core.communication.serial.serial_connection import SerialConnection
 
-from cm4_core_old.communication.serial.serial_interface import Serial_Interface
-from cm4_core_old.communication.serial.protocols.uart_protocol import UART_Protocol, UART_Message
+from cm4_core.communication.serial.serial_interface import Serial_Interface
+from cm4_core.communication.serial.protocols.uart_protocol import UART_Protocol, UART_Message
 
 
 class UART_CMD(enum.IntEnum):

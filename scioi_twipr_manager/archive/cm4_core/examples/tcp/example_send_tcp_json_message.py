@@ -1,9 +1,9 @@
 import logging
 import time
 
-import archive.cm4_core_old2.communication.wifi.core.tcp_socket as tcp
+import archive.cm4_core2.communication.wifi.core.tcp_socket as tcp
 
-from archive.cm4_core_old2.communication.wifi.protocols.tcp_json_protocol import TCP_JSONProtocol, TCP_JSONMessage
+from archive.cm4_core2.communication.wifi.protocols.tcp_json_protocol import TCP_JSONProtocol, TCP_JSONMessage
 
 logging.basicConfig(level=logging.INFO)
 

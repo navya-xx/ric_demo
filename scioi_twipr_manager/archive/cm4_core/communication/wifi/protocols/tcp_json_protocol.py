@@ -1,6 +1,6 @@
 import orjson
 
-from archive.cm4_core_old2.communication.protocols import Protocol, RawMessage
+from archive.cm4_core2.communication.protocols import Protocol, RawMessage
 from .tcp_protocol import TCP_Protocol
 
 

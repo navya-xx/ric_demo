@@ -2,12 +2,12 @@ from ctypes import sizeof
 
 import numpy as np
 
-from cm4_core_old.communication.spi.spi import SPI_Interface
+from cm4_core.communication.spi.spi import SPI_Interface
 import robot.TWIPR.settings as settings
-from cm4_core_old.utils import teleplot
-from cm4_core_old.utils.callbacks import Callback
+from cm4_core.utils import teleplot
+from cm4_core.utils.callbacks import Callback
 import robot.TWIPR.communication.spi.ll_sample as ll_sample
-from cm4_core_old.utils.ctypes_utils import struct_to_dict
+from cm4_core.utils.ctypes_utils import struct_to_dict
 
 from RPi import GPIO
 
