@@ -4,14 +4,15 @@
   import UPlot from "$lib/components/custom/uplot.svelte";
 
   const keys = [
-    "estimation.state.v",
-    "estimation.state.psi_dot",
     "estimation.state.psi",
-    "estimation.state.theta_dot",
-    "estimation.state.theta",
-    "consensus.dist_from_ref",
+
+    //"consensus.dist_from_ref",
   ];
-  $: dataGetter = stream.requestGetter([$currentBot], keys);
+
+  const bots = ["twipr1", "twipr2","twipr3","twipr4","twipr5"]
+
+
+  $: dataGetter = stream.requestGetter([Object.keys($botList)], keys);
 </script>
 
-<UPlot {dataGetter} />
+<UPlot {dataGetter}  bots={bots}/>
