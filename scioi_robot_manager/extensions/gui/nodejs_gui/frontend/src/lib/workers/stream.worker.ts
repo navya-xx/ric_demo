@@ -63,6 +63,7 @@ export class WorkerStream {
     handleStreamData(event){
         //console.log('Message from server ', event.data);
         const data = JSON.parse(event.data);
+        console.log(data);
         this.raw_data.push(data); // Update the local state with received data
 
         const botId = data.general.id;
@@ -131,7 +132,7 @@ export class WorkerStream {
 
                 const botData = data[bot];
 
-
+                // console.log(botData);
 
                 if (botData === undefined || botData.length === 0) {
                     continue;

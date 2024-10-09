@@ -12,6 +12,11 @@ for remote in ${REMOTE_MACHINES[@]}; do
   bash kill_ideenexpo.sh $remote
 done
 
+if [[ "$1" == "kill" ]]; then
+  echo "existing after killing running instances of ideenexpo.py"
+  exit 0
+fi
+
 sleep 1
 
 # Start a new tmux session named 'remote_ssh'

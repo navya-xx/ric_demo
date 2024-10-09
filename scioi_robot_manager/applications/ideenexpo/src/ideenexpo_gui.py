@@ -137,7 +137,9 @@ class IdeenExpoGUI(NodeJSGui):
                     'angle': 2  # float [grad]
                 }
             },
-
+            'consensus': {
+                'dist_from_ref': sample['consensus']['dist_from_ref'], # float
+            }
         }
 
         if new_sample['estimation']['state']['x'] == 0:

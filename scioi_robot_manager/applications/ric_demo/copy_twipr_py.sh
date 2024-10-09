@@ -30,14 +30,14 @@ copy_file() {
         echo "Failed to copy file to $remote_host"
     fi
 
-    echo "Copying folder $LOCAL_PATH$CM4_FOLDER to $remote_host..."
-    sshpass -p $PASSWORD scp -r "${LOCAL_PATH}${CM4_FOLDER}" "$REMOTE_USER@$remote_host:${REMOTE_PATH}"
+    # echo "Copying folder $LOCAL_PATH$CM4_FOLDER to $remote_host..."
+    # sshpass -p $PASSWORD scp -r "${LOCAL_PATH}${CM4_FOLDER}" "$REMOTE_USER@$remote_host:${REMOTE_PATH}"
 
-    if [ $? -eq 0 ]; then
-        echo "Folder $LOCAL_PATH$CM4_FOLDER successfully copied to $remote_host"
-    else
-        echo "Failed to copy file to $remote_host"
-    fi
+    # if [ $? -eq 0 ]; then
+    #     echo "Folder $LOCAL_PATH$CM4_FOLDER successfully copied to $remote_host"
+    # else
+    #     echo "Failed to copy file to $remote_host"
+    # fi
 }
 
 

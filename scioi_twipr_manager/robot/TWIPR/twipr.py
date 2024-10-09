@@ -219,6 +219,8 @@ class TWIPR:
         sample.consensus.target_pos_ref_y = self.pos_ref[1].item()
         sample.consensus.dist_from_ref = float(np.linalg.norm(self.pos_ref - self.pos))
 
+        print(sample.consensus.dist_from_ref)
+
         return sample
 
     def noEst(self):

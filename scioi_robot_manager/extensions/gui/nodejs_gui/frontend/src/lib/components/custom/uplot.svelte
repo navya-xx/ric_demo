@@ -43,7 +43,7 @@
 						auto: false,
 						time: true,
 					},
-					"C": { auto: false, range: [-3, 100] }
+					"C": { auto: false, range: [-1, 5] }
 				};
 
 
@@ -125,7 +125,7 @@
 
 
             const currentTime = Date.now() / 1000;
-			//console.log(data)
+			// console.log(data)
 		    plot.setData(data, false);
 
         }

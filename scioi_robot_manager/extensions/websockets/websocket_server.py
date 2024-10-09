@@ -50,6 +50,7 @@ class WebsocketClass:
     def send(self, message):
         if isinstance(message, dict):
             message = json.dumps(message)
+            # print(message)
         asyncio.run_coroutine_threadsafe(self._send(message), self.loop)
 
     def stop(self):

@@ -4,9 +4,8 @@
   import UPlot from "$lib/components/custom/uplot.svelte";
 
   const keys = [
-    "estimation.state.psi",
-
-    //"consensus.dist_from_ref",
+    // "estimation.state.psi",
+    "consensus.dist_from_ref",
   ];
 
   const bots = ["twipr1", "twipr2","twipr3","twipr4","twipr5"]
