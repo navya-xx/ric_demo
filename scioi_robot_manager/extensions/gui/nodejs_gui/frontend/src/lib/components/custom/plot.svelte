@@ -5,13 +5,10 @@
 
   const keys = [
     "estimation.state.v",
-    "estimation.state.psi_dot",
-    "estimation.state.psi",
-    "estimation.state.theta_dot",
-    "estimation.state.theta",
-    "consensus.dist_from_ref",
+
+    //"consensus.dist_from_ref",
   ];
-  $: dataGetter = stream.requestGetter([$currentBot], keys);
+  $: dataGetter = stream.requestGetter([Object.keys($botList)], keys);
 </script>
 
 <UPlot {dataGetter} />

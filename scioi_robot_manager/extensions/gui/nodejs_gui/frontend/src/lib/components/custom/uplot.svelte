@@ -18,11 +18,15 @@
 
 	let plot: uPlot;
 
-    export let keys = ['time', 'v', 'psi_dot', 'psi', 'theta_dot', 'theta'];
-	export let units = ['s', 'm/s', 'rad/s', 'deg','rad/s', 'deg'];
+    export let keys = ['time', 'consensus error'];
+	export let units = ['s', ''];
+	export let ranges = [
+		[null, null],
+		[-1, 1],
+	];
 	const colors = [
 		'black',
-		'blue',
+		'black',
 		'red',
 		'green',
 		'purple',
@@ -41,14 +45,7 @@
 		'lightcyan',
 		'lightmagenta'
 	];
-	export let ranges = [
-		[null, null],
-		[-1, 1],
-		[-10, 10],
-		[-1.57, 1.57],
-		[-1, 1],
-		[-1.57, 1.57]
-	];
+
 
 	function onResize(entry: ResizeObserverEntry) {
 		width = entry.contentRect.width;
@@ -81,7 +78,7 @@
 				let side = i % 2 == 0 ? 1 : 3;
 				axes.push({
 					scale: keys[i]+units[i],
-					label: keys[i] + ' [' + units[i] + ']',
+					label: keys[i] + ' ' + units[i] + '',
 					stroke: colors[i],
 					side: side,
 					size: 40
@@ -126,9 +123,11 @@
 
 	function updateData() {
         const data = dataGetter();
-        if (data?.length && data[0]?.length && data[0][1]?.length){
+
+        if (data?.length && data[0]?.length && data[1]?.length){
             const currentTime = Date.now() / 1000;
-		    plot.setData(data[0], false);
+			console.log(data)
+		    plot.setData(data, false);
         }
 	}
 

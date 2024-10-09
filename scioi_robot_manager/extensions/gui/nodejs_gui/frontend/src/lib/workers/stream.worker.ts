@@ -121,34 +121,56 @@ export class WorkerStream {
     }
 
     updatePlotStreams(data) {
+
         for (const psk of this.plotStreamKeys) {
             const { id, bots, keys, time } = psk;
-            for (const [b, bot] of bots.entries()) {
+
+
+
+            for (const [b, bot] of (bots[0]).entries()) {
+
                 const botData = data[bot];
+
+                if (!this.plotStreams[id][b]) {
+                    this.plotStreams[id][b] = [];
+                }
+
                 if (botData === undefined || botData.length === 0) {
                     continue;
                 }
                 if (time) {
-                    this.plotStreams[id][b][0].push(access("general.time", botData));
+                    if (!this.plotStreams[id][0]) {
+                        this.plotStreams[id][0] = [];
+                    }
+
+                    this.plotStreams[id][0].push(access("general.time", botData));
 
                     // use splice to keep buffer length
-                    if (this.plotStreams[id][b][0].length > this.bufferSize) {
-                        this.plotStreams[id][b][0].splice(0, this.plotStreams[id][b][0].length - this.bufferSize);
+                    if (this.plotStreams[id][0].length > this.bufferSize) {
+                        this.plotStreams[id][0].splice(0, this.plotStreams[id][0].length - this.bufferSize);
                     }
 
                 }
-                for (const [k, key] of keys.entries()) {
 
-                    this.plotStreams[id][b][k + 1].push(access(key, botData));
+                const key = keys[0];
 
-                    // use splice to keep buffer length
-                    if (this.plotStreams[id][b][k + 1].length > this.bufferSize) {
-                        this.plotStreams[id][b][k + 1].splice(0, this.plotStreams[id][b][k + 1].length - this.bufferSize);
-                    }
 
+
+                this.plotStreams[id][b].push(access(key, botData));
+
+
+                // use splice to keep buffer length
+                if (this.plotStreams[id][b].length > this.bufferSize) {
+                    this.plotStreams[id][b].splice(0, this.plotStreams[id][b].length - this.bufferSize);
                 }
+
+
             }
         }
+
+
+
+
         self.postMessage({ signal: "updatePlotStreams", data: this.plotStreams });
     }
 
@@ -213,17 +235,16 @@ export class WorkerStream {
         }
 
         this.plotStreamKeys.push({ id, bots, keys, time });
-        this.plotStreams[id] = [];
+        this.plotStreams[id] = [[]];
 
-        for (const [i, bot] of bots.entries()) {
-            this.plotStreams[id][i] = [];
-            for (const [key] of keys) {
-                this.plotStreams[id][i].push([]);
-            }
-            if (time) {
-                this.plotStreams[id][i].push([]);
-            }
+        for (const [b, bot] of (bots[0]).entries()) {
+
+
+            this.plotStreams[id].push([]);
         }
+
+
+
 
     }
 
