@@ -8,7 +8,11 @@
 
     //"consensus.dist_from_ref",
   ];
+
+  const bots = ["twipr1", "twipr2","twipr3","twipr4","twipr5", "twipr6"]
+
+
   $: dataGetter = stream.requestGetter([Object.keys($botList)], keys);
 </script>
 
-<UPlot {dataGetter} />
+<UPlot {dataGetter}  bots={bots}/>
