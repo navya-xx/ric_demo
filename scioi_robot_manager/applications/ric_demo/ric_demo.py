@@ -304,6 +304,15 @@ class RIC_Demo:
                     elif tmp[1] == 'line':
                         self.consensus.formation_spacing = float(tmp[2])
                 self.run_consensus()
+            elif message['data']['command'].startswith('set_network_graph_'):
+                msg = message['data']['command']
+                ind = msg.find('set_network_graph_')
+                if ind != -1:
+                    mode = msg[ind + len('set_network_graph_'):]
+                    print(mode)
+                else:
+                    print("mode parsing failed in msg", msg)
+
             elif message['data']['command'].startswith('stop'):
                 self.ric_robot_manager.gui.print(f"Stop Consensus")
                 self.stop_consensus()
@@ -342,6 +351,13 @@ class RIC_Demo:
                 y_line = 0
                 self.simulation.env.virtual_agents[agent_id].setPosition(x=x_line, y=y_line)
             time.sleep(0.5)
+
+    def change_graph_type(self, mode):
+        if mode == "fully_connected":
+            self.consensus.graph_type = "full"
+        elif mode == "spanning_tree":
+            self.consensus.graph_type = "span"
+
 
     def run_consensus(self):
 

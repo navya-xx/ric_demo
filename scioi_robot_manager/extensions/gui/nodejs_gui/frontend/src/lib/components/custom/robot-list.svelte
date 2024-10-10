@@ -45,7 +45,7 @@
 	function toggleGraph(mode) {
 		graphMode = mode;
 		console.log("toggle graph", mode);
-		const message = { type: "command", data: { command: "set_metwork_graph_"+mode } };
+		const message = { type: "command", data: { command: "set_network_graph_"+mode } };
 		// write consensus state to localstorage
 
 		localStorage.setItem("graph", mode);
